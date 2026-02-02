@@ -1,0 +1,249 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Treatments - Veterinary</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  --card-bg: rgba(255,255,255,0.72);
+  --card-shadow: 0 18px 40px rgba(0,0,0,.18);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:"Segoe UI",Tahoma,sans-serif;
+  color:#111;
+  background:url("https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg") center/cover no-repeat;
+}
+
+/* ===== Layout ===== */
+.layout{display:flex;gap:20px;padding:24px;height:100vh;overflow:hidden}
+
+/* ===== Sidebar ===== */
+.sidebar{
+  width:260px;
+  background:var(--card-bg);
+  backdrop-filter:blur(14px);
+  box-shadow:var(--card-shadow);
+  border-radius:18px;
+  padding:24px 18px;
+  display:flex;
+  flex-direction:column;
+}
+.sidebar h2{text-align:center;margin:0 0 20px;font-size:22px}
+.nav a{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 16px;
+  border-radius:12px;
+  margin-bottom:8px;
+  text-decoration:none;
+  font-weight:600;
+  color:#111;
+}
+.nav a.active,.nav a:hover{
+  background:rgba(0,0,0,0.85);
+  color:#fff;
+}
+
+/* ===== Main ===== */
+.main{flex:1;overflow:auto;padding-right:10px}
+
+/* ===== Hero ===== */
+.hero{
+  background:var(--card-bg);
+  backdrop-filter: blur(12px) saturate(120%);
+  box-shadow: var(--card-shadow);
+  border-radius: 18px;
+  padding: 28px 22px;
+  text-align:center;
+  margin-bottom:26px;
+}
+.hero h1{margin:0 0 8px;font-size:28px}
+.hero p{margin:0;color:#222}
+
+/* ===== Buttons ===== */
+.btn{
+  display:inline-block;
+  padding:10px 20px;
+  border-radius:999px;
+  font-weight:700;
+  border:1px solid rgba(0,0,0,0.12);
+  background: rgba(255,255,255,0.42);
+  cursor:pointer;
+}
+.btn:hover{transform:translateY(-3px);background:rgba(0,0,0,0.85);color:#fff;}
+
+/* ===== Form ===== */
+.card{
+  background:var(--card-bg);
+  backdrop-filter:blur(12px);
+  box-shadow:var(--card-shadow);
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:28px;
+}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.full{grid-column:1/-1;}
+label{font-weight:600;margin-bottom:6px;display:block;}
+input,select,textarea{width:100%;padding:10px;border-radius:12px;border:1px solid rgba(0,0,0,.15);}
+textarea{resize:vertical;min-height:100px;}
+.status{margin-top:10px;font-weight:600;}
+
+/* ===== Treatments Cards ===== */
+.treatments{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:18px;
+}
+.treat-card{
+  background:var(--card-bg);
+  backdrop-filter:blur(12px);
+  box-shadow:var(--card-shadow);
+  border-radius:16px;
+  padding:14px;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.treat-card:hover{transform:translateY(-6px);box-shadow:0 30px 60px rgba(0,0,0,0.25);}
+
+@media(max-width:900px){.layout{flex-direction:column}.sidebar{width:100%}}
+@media(max-width:720px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>🩺 VMS Doctor</h2>
+    <nav class="nav">
+      <a href="/doctor">Dashboard</a>
+      <a href="/visits/">Visits</a>
+      <a href="/allergies/">Allergies</a>
+      <a href="/vitals/">Vitals</a>
+      <a href="/medical-notes/">Medical Notes</a>
+      <a href="/medications/">Medications</a>
+      <a href="/documents/">Documents</a>
+      <a class="active" href="/treatments/">Treatments</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="container">
+
+      <div class="hero">
+        <h1>Treatments</h1>
+        <p>Clinical treatments & procedures</p>
+      </div>
+
+      <!-- Add Treatment -->
+      <div class="card">
+        <form id="treatmentForm">
+          {% csrf_token %}
+          <div class="grid">
+            <div>
+              <label>Patient</label>
+              <select id="patientSelect" name="patient" required></select>
+            </div>
+            <div>
+              <label>Treatment Name</label>
+              <input name="name" required />
+            </div>
+            <div>
+              <label>Date</label>
+              <input type="date" name="date" />
+            </div>
+            <div>
+              <label>Veterinarian</label>
+              <input name="veterinarian" placeholder="Optional" />
+            </div>
+            <div class="full">
+              <label>Description / Procedure</label>
+              <textarea name="description"></textarea>
+            </div>
+          </div>
+          <div style="text-align:right;margin-top:12px">
+            <button class="btn">Add Treatment</button>
+          </div>
+          <p id="status" class="status"></p>
+        </form>
+      </div>
+
+      <!-- Treatments List -->
+      <div class="treatments" id="treatmentGrid"></div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+const treatmentsApi = "http://127.0.0.1:8000/api/treatments/";
+const patientsApi   = "http://127.0.0.1:8000/api/patients/";
+
+function csrf(){return document.querySelector('[name=csrfmiddlewaretoken]').value;}
+
+async function loadPatients(){
+  const sel=document.getElementById("patientSelect");
+  try{
+    const res=await fetch(patientsApi,{credentials:"same-origin"});
+    const data=await res.json();
+    sel.innerHTML='<option value="">Select patient</option>';
+    data.forEach(p=>{const o=document.createElement("option");o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
+  }catch(err){sel.innerHTML='<option value="">Error loading patients</option>';console.error(err);}
+}
+
+async function loadTreatments(){
+  const grid=document.getElementById("treatmentGrid");
+  grid.innerHTML="";
+  try{
+    const res=await fetch(treatmentsApi,{credentials:"same-origin"});
+    if(!res.ok){document.getElementById("status").textContent="Failed to load treatments";return;}
+    const data=await res.json();
+    if(!data.length){grid.innerHTML="<p>No treatments recorded</p>";return;}
+    data.forEach(t=>{
+      const d=document.createElement("div"); d.className="treat-card";
+      d.innerHTML=`<strong>${t.name}</strong><br>
+        Patient: ${t.patient_name || t.patient}<br>
+        Vet: ${t.veterinarian || "-"}<br>
+        Date: ${t.date || "-"}<br>
+        <div style="margin-top:6px">${t.description || ""}</div>
+        <div style="margin-top:6px;font-size:13px;color:#555">${t.created_at ? new Date(t.created_at).toLocaleString() : ""}</div>`;
+      grid.appendChild(d);
+    });
+  }catch(err){console.error(err);document.getElementById("status").textContent="Error loading treatments";}
+}
+
+document.getElementById("treatmentForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const f=e.target;
+  const body={
+    patient:f.patient.value,
+    name:f.name.value,
+    date:f.date.value,
+    veterinarian:f.veterinarian.value,
+    description:f.description.value
+  };
+  try{
+    const res=await fetch(treatmentsApi,{
+      method:"POST",
+      headers:{"Content-Type":"application/json","X-CSRFToken":csrf()},
+      credentials:"same-origin",
+      body:JSON.stringify(body)
+    });
+    if(!res.ok){document.getElementById("status").textContent="Error saving treatment";return;}
+    document.getElementById("status").textContent="Treatment added";
+    f.reset();
+    loadTreatments();
+  }catch(err){console.error(err);document.getElementById("status").textContent="Network error";}
+});
+
+(async()=>{await loadPatients();await loadTreatments();})();
+</script>
+
+</body>
+</html>

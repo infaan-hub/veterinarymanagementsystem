@@ -1,0 +1,272 @@
+{% load static %}  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Receipts - Veterinary</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{
+      --card-bg: rgba(255,255,255,0.72);
+      --card-shadow: 0 18px 40px rgba(0,0,0,0.18);
+      --glass-bg: rgba(255,255,255,0.72);
+      --glass-shadow: 0 18px 40px rgba(0,0,0,0.18);
+    }
+
+    html,body{height:100%;margin:0;font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;}
+    body{
+      background-image:url("https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg");
+      background-size:cover;
+      background-position:center;
+      padding:20px;
+      box-sizing:border-box;
+      color:#111;
+    }
+
+    /* ===== Layout ===== */
+    .layout{display:flex;min-height:100vh;gap:20px;}
+    .sidebar{
+      width:260px;
+      background:var(--glass-bg);
+      backdrop-filter:blur(14px);
+      box-shadow:var(--glass-shadow);
+      border-radius:18px;
+      padding:24px 18px;
+    }
+    .sidebar h2{text-align:center;margin:0 0 20px;font-size:22px;}
+    .nav a{
+      display:block;
+      padding:12px 16px;
+      border-radius:12px;
+      margin-bottom:8px;
+      text-decoration:none;
+      font-weight:600;
+      color:#111;
+    }
+    .nav a:hover, .nav a.active{background:rgba(0,0,0,0.85); color:#fff;}
+    .main{flex:1;}
+
+    /* ===== Existing Page Styles ===== */
+    .wrap{max-width:1100px;margin:0 auto}
+    .hero{
+      background:var(--card-bg);
+      backdrop-filter: blur(12px) saturate(120%);
+      box-shadow: var(--card-shadow);
+      border-radius: 18px;
+      padding: 28px 22px;
+      text-align:center;
+      margin-bottom:26px;
+    }
+    .hero h1{margin:0 0 8px;font-size:28px}
+    .hero p{margin:0;color:#222}
+
+    .btn{
+      display:inline-block;padding:10px 20px;border-radius:999px;font-weight:700;
+      text-decoration:none;border:1px solid rgba(0,0,0,0.12);
+      background: rgba(255,255,255,0.42);color:#111;cursor:pointer;
+    }
+    .btn:hover{ transform:translateY(-3px); background:rgba(0,0,0,0.85); color:#fff; }
+
+    .form-card{
+      max-width:720px;margin:0 auto 28px;background:var(--card-bg);
+      backdrop-filter: blur(12px) saturate(120%);
+      box-shadow: var(--card-shadow);border-radius: 18px;padding: 18px;
+    }
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center}
+    .form-grid .full{grid-column:1/-1}
+
+    label{display:block;font-weight:600;margin-bottom:6px}
+    input,select,button{width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,0.12);box-sizing:border-box;font-size:14px}
+    input[type="number"]{width:100%;}
+    .status{margin-top:10px;font-weight:600}
+    pre#debug{margin-top:8px;color:#444;font-size:13px;white-space:pre-wrap}
+
+    .cards{display:grid;grid-template-columns: repeat(auto-fit,minmax(260px,1fr));gap:18px}
+    .card{background:var(--card-bg);backdrop-filter:blur(12px) saturate(120%);
+      box-shadow:var(--card-shadow);border-radius:16px;padding:14px;transition:transform .18s ease;overflow:hidden;}
+    .card:hover{transform:translateY(-6px);box-shadow:0 30px 60px rgba(0,0,0,0.25)}
+    .card .title{font-weight:700;margin-bottom:6px}
+    .card .row{display:flex;justify-content:space-between;margin:6px 0}
+    .status-pill{padding:6px 10px;border-radius:999px;font-weight:700}
+    .status-paid{background:#d4edda;color:#155724}
+    .status-pending{background:#fff3cd;color:#856404}
+    .status-cancelled{background:#f8d7da;color:#721c24}
+
+    @media(max-width:720px){ .layout{flex-direction:column;} .form-grid{grid-template-columns:1fr} .sidebar{width:100%;} }
+
+    /* ========================= */
+    /* Hide Clients link in sidebar */
+    .nav a[href="/clients/"] {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>Veterinary Management System(VMS)🩺🐾</h2>
+    <nav class="nav">
+      <a href="/home/">Dashboard</a>
+      <a href="/patients/">Patients</a>
+      <a href="/appointments/">Appointments</a>
+      <a class="active" href="/receipts/">Receipts</a>
+      <a href="/clients/">Clients</a> <!-- hidden via CSS -->
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+    <div class="wrap">
+      <div class="hero">
+        <h1>Receipts</h1>
+        <p>Amount, Date (MM/DD/YYYY), Status, Client</p>
+      </div>
+
+      <div style="text-align:center; margin-bottom:14px;">
+        <a href="{% url 'home' %}" class="btn">Back Home</a>
+      </div>
+
+      <div class="form-card">
+        <form id="receiptForm">
+          {% csrf_token %}
+          <div class="form-grid">
+            <div>
+              <label>Amount</label>
+              <input type="number" name="amount" required step="0.01" />
+            </div>
+
+            <div>
+              <label>Date</label>
+              <input type="date" name="date" required />
+            </div>
+
+            <div>
+              <label>Status</label>
+              <select name="status">
+                <option value="Pending">Pending</option>
+                <option value="Paid">Paid</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+
+            {% if client_pk %}
+              <div class="full">
+                <label>Client</label>
+                <input type="hidden" id="clientInput" name="client" value="{{ client_pk }}" />
+                <input type="text" value="Client auto-selected (ID: {{ client_pk }})" readonly />
+                <small style="color:#444">Client selected for this account.</small>
+              </div>
+            {% else %}
+              <div class="full">
+                <label>Client</label>
+                <select id="clientSelect" name="client" required>
+                  <option value="">Loading clients...</option>
+                </select>
+                <small id="clientHint" style="color:#444; display:block; margin-top:6px;"></small>
+              </div>
+            {% endif %}
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:12px;">
+            <button type="submit" class="btn" style="width:auto;padding:10px 18px">Add Receipt</button>
+          </div>
+
+          <p id="status" class="status"></p>
+          <pre id="debug"></pre>
+        </form>
+      </div>
+
+      <div class="cards" id="receiptsGrid"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const apiUrl = "/api/receipts/";
+  const clientsApi = "/api/clients/";
+  const initialClientPk = "{{ client_pk|default:'' }}";
+
+  function getCSRFToken(){
+    const cookie = document.cookie.split(';').map(s=>s.trim()).find(c=>c.startsWith('csrftoken='));
+    if(cookie) return decodeURIComponent(cookie.split('=')[1]);
+    const input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    return input ? input.value : null;
+  }
+
+  function setStatus(msg, isError=false){
+    const el = document.getElementById('status');
+    el.style.color = isError ? 'crimson' : 'green';
+    el.textContent = msg;
+  }
+
+  function debugDump(obj){ document.getElementById('debug').textContent = JSON.stringify(obj,null,2); console.log('DEBUG:',obj); }
+  function formatDateMMDDYYYY(value){ if(!value) return '-'; const d=new Date(value); if(!isNaN(d)){ return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`; } return value; }
+  function statusClass(status){ const s=(status||'').toLowerCase(); if(s==='paid') return 'status-paid'; if(s==='pending') return 'status-pending'; if(s==='cancelled') return 'status-cancelled'; return ''; }
+
+  async function loadReceipts(){
+    const grid = document.getElementById('receiptsGrid'); grid.innerHTML='';
+    try{
+      const res = await fetch(apiUrl,{credentials:'same-origin'});
+      if(!res.ok){ setStatus('Failed to load receipts',true); debugDump({status:res.status}); return; }
+      const data = await res.json();
+      if(!Array.isArray(data) || data.length===0){ grid.innerHTML='<p style="grid-column:1/-1;color:#333">No receipts found.</p>'; return; }
+      data.forEach(r=>{
+        const div=document.createElement('div'); div.className='card';
+        const amount = r.amount!=null ? parseFloat(r.amount).toFixed(2) : '-';
+        const date = formatDateMMDDYYYY(r.date||r.created_at);
+        const statusText = r.status||r.payment_status||'Pending';
+        const clientText = r.client_display||r.client||r.client_id||'-';
+        div.innerHTML=`
+          <div class="title">Receipt ${r.id ?? ''}</div>
+          <div class="row"><span>Amount</span><span>${amount}</span></div>
+          <div class="row"><span>Date</span><span>${date}</span></div>
+          <div class="row"><span>Status</span><span class="status-pill ${statusClass(statusText)}">${statusText}</span></div>
+          <div class="row"><span>Client</span><span>${clientText}</span></div>
+        `;
+        grid.appendChild(div);
+      });
+    }catch(err){ setStatus('Network error loading receipts',true); debugDump(err); }
+  }
+
+  async function loadClientsIntoSelect(){
+    const select=document.getElementById('clientSelect'); const hint=document.getElementById('clientHint');
+    if(!select) return; select.disabled=true; select.innerHTML='<option value="">Loading clients...</option>'; hint.textContent='';
+    try{
+      const res = await fetch(clientsApi,{credentials:'same-origin'});
+      if(!res.ok){ select.innerHTML='<option value="">Failed to load clients</option>'; setStatus('Failed to load clients',true); debugDump({clientsStatus:res.status}); return; }
+      const data = await res.json(); select.innerHTML='<option value="">Select client</option>';
+      data.forEach(c=>{ const value=c.id??c.client_id||''; const label=c.full_name||c.name||value; const o=document.createElement('option'); o.value=value; o.textContent=label+(c.client_id?` — ${c.client_id}`:''); select.appendChild(o); });
+      const options=Array.from(select.options).filter(o=>o.value);
+      if(options.length===1){ select.value=options[0].value; hint.textContent=`Auto-selected client: ${options[0].textContent}`; }
+      select.disabled=false;
+    }catch(err){ select.innerHTML='<option value="">Network error</option>'; setStatus('Network error loading clients',true); debugDump(err); }
+  }
+
+  document.getElementById('receiptForm').addEventListener('submit', async function(e){
+    e.preventDefault(); setStatus('Submitting...'); debugDump({});
+    const form = e.target;
+    let clientValue=null; const clientInput=document.getElementById('clientInput');
+    if(clientInput && clientInput.value) clientValue=clientInput.value;
+    else { const clientSelect=document.getElementById('clientSelect'); if(clientSelect) clientValue=clientSelect.value; }
+    if(!clientValue){ setStatus('Please select a client.',true); return; }
+    const formData = new FormData();
+    formData.append('amount', form.amount.value);
+    formData.append('date', form.date.value);
+    formData.append('status', form.status.value);
+    formData.append('client', clientValue);
+    const csrf=getCSRFToken(); if(!csrf){ setStatus('CSRF token missing',true); return; }
+    try{
+      const res = await fetch(apiUrl,{method:'POST',credentials:'same-origin',headers:{'X-CSRFToken':csrf},body:formData});
+      let resData; try{ resData=await res.json(); }catch(e){ resData=await res.text(); }
+      if(!res.ok){ const errText=typeof resData==='object'?JSON.stringify(resData):String(resData); setStatus('Error: '+errText,true); debugDump(resData); return; }
+      setStatus('Receipt added successfully!'); form.reset();
+      if(initialClientPk && document.getElementById('clientInput')) document.getElementById('clientInput').value=initialClientPk;
+      loadReceipts();
+    }catch(err){ setStatus('Network error while submitting',true); debugDump(err); }
+  });
+
+  (function init(){ loadReceipts(); if(!initialClientPk) loadClientsIntoSelect(); })();
+</script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Documents - Veterinary</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  --card-bg: rgba(255,255,255,0.72);
+  --card-shadow: 0 18px 40px rgba(0,0,0,.18);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:"Segoe UI",Tahoma,sans-serif;
+  color:#111;
+  background:url("https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg") center/cover no-repeat;
+}
+
+/* ===== Layout ===== */
+.layout{display:flex;gap:20px;padding:24px;height:100vh;}
+
+/* ===== Sidebar ===== */
+.sidebar{
+  width:260px;
+  background:var(--card-bg);
+  backdrop-filter:blur(14px);
+  box-shadow:var(--card-shadow);
+  border-radius:18px;
+  padding:24px 18px;
+  display:flex;
+  flex-direction:column;
+}
+.sidebar h2{text-align:center;margin:0 0 20px;font-size:22px}
+.nav a{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 16px;
+  border-radius:12px;
+  margin-bottom:8px;
+  text-decoration:none;
+  font-weight:600;
+  color:#111;
+}
+.nav a.active,.nav a:hover{
+  background:rgba(0,0,0,0.85);
+  color:#fff;
+}
+
+/* ===== Main ===== */
+.main{flex:1;overflow:auto;padding-right:10px}
+
+/* ===== Container ===== */
+.container{max-width:1100px;margin:0 auto;padding:0 20px}
+
+/* ===== Hero ===== */
+.hero{
+  background:var(--card-bg);
+  backdrop-filter: blur(12px) saturate(120%);
+  box-shadow: var(--card-shadow);
+  border-radius: 18px;
+  padding: 28px 22px;
+  text-align:center;
+  margin-bottom:26px;
+}
+.hero h1{margin:0 0 8px;font-size:28px}
+.hero p{margin:0;color:#222}
+
+/* ===== Buttons ===== */
+.btn{
+  display:inline-block;
+  padding:10px 20px;
+  border-radius:999px;
+  font-weight:700;
+  border:1px solid rgba(0,0,0,0.12);
+  background: rgba(255,255,255,0.42);
+  cursor:pointer;
+}
+.btn:hover{transform:translateY(-3px);background:rgba(0,0,0,0.85);color:#fff;}
+
+/* ===== Form ===== */
+.card{
+  background:var(--card-bg);
+  backdrop-filter:blur(12px);
+  box-shadow:var(--card-shadow);
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:28px;
+}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.full{grid-column:1/-1;}
+label{font-weight:600;margin-bottom:6px;display:block;}
+input,select,textarea{width:100%;padding:10px;border-radius:12px;border:1px solid rgba(0,0,0,.15);}
+textarea{resize:vertical;min-height:100px;}
+.status{margin-top:10px;font-weight:600;}
+
+/* ===== Documents Cards ===== */
+.docs{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:18px;
+}
+.doc-card{
+  background:var(--card-bg);
+  backdrop-filter:blur(12px);
+  box-shadow:var(--card-shadow);
+  border-radius:16px;
+  padding:14px;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.doc-card:hover{transform:translateY(-6px);box-shadow:0 30px 60px rgba(0,0,0,0.25);}
+
+@media(max-width:900px){.layout{flex-direction:column}.sidebar{width:100%}}
+@media(max-width:720px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>🩺 VMS Doctor</h2>
+    <nav class="nav">
+      <a href="/doctor">Dashboard</a>
+      <a href="/visits/">Visits</a>
+      <a href="/allergies/">Allergies</a>
+      <a href="/vitals/">Vitals</a>
+      <a href="/medical-notes/">Medical Notes</a>
+      <a href="/medications/">Medications</a>
+      <a class="active" href="/documents/">Documents</a>
+      <a href="/treatments/">Treatments</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="container">
+
+      <div class="hero">
+        <h1>Documents</h1>
+        <p>Patient medical files & attachments</p>
+      </div>
+
+      <!-- Upload Form -->
+      <div class="card">
+        <form id="docForm" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="grid">
+            <div>
+              <label>Patient</label>
+              <select id="patientSelect" name="patient" required></select>
+            </div>
+            <div>
+              <label>Title</label>
+              <input name="title" required>
+            </div>
+            <div class="full">
+              <label>Document File</label>
+              <input type="file" name="file" required>
+            </div>
+            <div class="full">
+              <label>Description</label>
+              <textarea name="description"></textarea>
+            </div>
+          </div>
+          <div style="text-align:right;margin-top:12px">
+            <button class="btn">Upload Document</button>
+          </div>
+          <p id="status" class="status"></p>
+        </form>
+      </div>
+
+      <!-- Documents List -->
+      <div class="docs" id="docGrid"></div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+const docsApi = "http://127.0.0.1:8000/api/documents/";
+const patientsApi = "http://127.0.0.1:8000/api/patients/";
+
+function csrf(){return document.querySelector('[name=csrfmiddlewaretoken]').value;}
+
+async function loadPatients(){
+  const sel=document.getElementById("patientSelect");
+  try{
+    const res=await fetch(patientsApi,{credentials:"same-origin"});
+    const data=await res.json();
+    sel.innerHTML='<option value="">Select patient</option>';
+    data.forEach(p=>{const o=document.createElement("option");o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
+  }catch(err){sel.innerHTML='<option value="">Error loading patients</option>';console.error(err);}
+}
+
+async function loadDocuments(){
+  const grid=document.getElementById("docGrid");
+  grid.innerHTML="";
+  try{
+    const res=await fetch(docsApi,{credentials:"same-origin"});
+    if(!res.ok){document.getElementById("status").textContent="Failed loading documents";return;}
+    const data=await res.json();
+    if(!data.length){grid.innerHTML="<p>No documents uploaded</p>";return;}
+    data.forEach(d=>{
+      const card=document.createElement("div"); card.className="doc-card";
+      card.innerHTML=`<strong>${d.title}</strong><br>
+        Patient: ${d.patient_name || d.patient}<br>
+        ${d.description || ""}<br><br>
+        <a href="${d.file}" target="_blank" class="btn">View</a>
+        <div style="margin-top:6px;font-size:13px;color:#555">${d.created_at ? new Date(d.created_at).toLocaleString() : ""}</div>`;
+      grid.appendChild(card);
+    });
+  }catch(err){console.error(err);document.getElementById("status").textContent="Error loading documents";}
+}
+
+document.getElementById("docForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const f=e.target; const fd=new FormData(f);
+  try{
+    const res=await fetch(docsApi,{
+      method:"POST",
+      headers:{"X-CSRFToken":csrf()},
+      credentials:"same-origin",
+      body:fd
+    });
+    if(!res.ok){document.getElementById("status").textContent="Upload failed";return;}
+    document.getElementById("status").textContent="Document uploaded";
+    f.reset();
+    loadDocuments();
+  }catch(err){console.error(err);document.getElementById("status").textContent="Network error";}
+});
+
+(async()=>{await loadPatients();await loadDocuments();})();
+</script>
+
+</body>
+</html>

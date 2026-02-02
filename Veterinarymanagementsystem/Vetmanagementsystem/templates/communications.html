@@ -1,0 +1,307 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Communication - Veterinary</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{
+      --card-bg: rgba(255,255,255,0.72);
+      --card-shadow: 0 18px 40px rgba(0,0,0,0.18);
+    }
+    html,body{height:100%;margin:0}
+    body{
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-image: url("https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: repeat;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      color:#111;
+    }
+
+    .container{max-width:1100px;margin:0 auto;padding:36px 20px}
+
+    .hero{
+      background:var(--card-bg);
+      backdrop-filter: blur(12px) saturate(120%);
+      -webkit-backdrop-filter: blur(12px) saturate(120%);
+      box-shadow: var(--card-shadow);
+      border-radius: 18px;
+      padding: 28px 22px;
+      text-align:center;
+      margin-bottom:26px;
+    }
+    .hero h1{margin:0 0 8px;font-size:28px}
+    .hero p{margin:0;color:#222}
+
+    .btn {
+      display:inline-block;
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-weight:700;
+      text-decoration:none;
+      border:1px solid rgba(0,0,0,0.12);
+      background: rgba(255,255,255,0.42);
+      color:#111;
+      transition: transform .18s ease, background .18s ease, color .18s ease;
+      cursor:pointer;
+    }
+    .btn:hover{ transform: translateY(-3px); background: rgba(0,0,0,0.85); color:#fff; }
+
+    .form-card{
+      max-width:880px;
+      margin: 0 auto 28px;
+      background:var(--card-bg);
+      backdrop-filter: blur(12px) saturate(120%);
+      -webkit-backdrop-filter: blur(12px) saturate(120%);
+      box-shadow: var(--card-shadow);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .form-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      align-items:flex-start;
+    }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    label { display:block; font-weight:600; margin-bottom:6px; }
+    input[type="text"], textarea, select {
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(0,0,0,0.12);
+      font-size:14px;
+      box-sizing:border-box;
+    }
+    textarea { min-height:80px; resize:vertical; }
+
+    .status { margin-top:10px; font-weight:600; }
+
+    .communications {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap:18px;
+    }
+
+    .communication-card{
+      background:var(--card-bg);
+      backdrop-filter: blur(12px) saturate(120%);
+      -webkit-backdrop-filter: blur(12px) saturate(120%);
+      box-shadow: var(--card-shadow);
+      border-radius:16px;
+      padding:14px;
+      transition: transform .18s ease, box-shadow .18s ease;
+      overflow:hidden;
+    }
+    .communication-card:hover{ transform: translateY(-6px); box-shadow:0 30px 60px rgba(0,0,0,0.25); }
+
+    .meta { font-size:14px; color:#222; line-height:1.4; }
+
+    @media (max-width:720px){
+      .form-grid { grid-template-columns: 1fr; }
+      .container{padding:20px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <h1>Communication</h1>
+      <p>Send messages to clients/patients and review past communications.</p>
+    </div>
+
+    <div style="text-align:center; margin-bottom:14px;">
+      <a href="{% url 'home' %}" class="btn">Back Home</a>
+    </div>
+
+    <div class="form-card">
+      <form id="commForm">
+        {% csrf_token %}
+        <div class="form-grid">
+          <div>
+            <label>Recipient (Patient)</label>
+            <select id="patientSelect" name="patient" required>
+              <option value="">Loading patients...</option>
+            </select>
+            <div id="patientHint" style="margin-top:6px;color:#444;font-size:13px"></div>
+          </div>
+
+          <div class="full">
+            <label>Message</label>
+            <textarea name="message" placeholder="Write your message here..." required></textarea>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:12px;">
+          <button type="submit" class="btn">Send Message</button>
+        </div>
+
+        <p id="status" class="status"></p>
+        <pre id="debug" style="margin-top:8px;color:#444;font-size:13px"></pre>
+      </form>
+    </div>
+
+    <div class="communications" id="commGrid"></div>
+  </div>
+
+<script>
+  const commApi = "http://127.0.0.1:8000/api/communications/";
+  const patientsApi = "http://127.0.0.1:8000/api/patients/";
+
+  function getCSRFToken() {
+    const cookieString = document.cookie || '';
+    for (const c of cookieString.split(';').map(s => s.trim())) {
+      if (c.startsWith('csrftoken=')) return decodeURIComponent(c.split('=')[1]);
+    }
+    const input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input) return input.value;
+    return null;
+  }
+
+  function setStatus(msg, isError=false){
+    const el = document.getElementById('status');
+    el.style.color = isError ? 'crimson' : 'green';
+    el.textContent = msg;
+  }
+
+  function debugDump(obj){
+    document.getElementById('debug').textContent = JSON.stringify(obj, null, 2);
+    console.log('DEBUG:', obj);
+  }
+
+  function formatApiErrors(resData){
+    if (!resData) return 'Unknown error';
+    if (typeof resData === 'string') return resData;
+    if (Array.isArray(resData)) return resData.join(', ');
+    if (typeof resData === 'object'){
+      return Object.entries(resData).map(([k,v])=>{
+        if (Array.isArray(v)) return `${k}: ${v.join(', ')}`;
+        return `${k}: ${v}`;
+      }).join(' | ');
+    }
+    return JSON.stringify(resData);
+  }
+
+  async function loadPatients(){
+    const select = document.getElementById('patientSelect');
+    const hint = document.getElementById('patientHint');
+    select.disabled = true;
+    select.innerHTML = '<option value="">Loading patients...</option>';
+    hint.textContent = '';
+    try {
+      const res = await fetch(patientsApi, { credentials: 'same-origin' });
+      if (!res.ok){
+        select.innerHTML = '<option value="">Failed to load patients</option>';
+        setStatus('Could not load patients', true);
+        debugDump({ patientsLoadStatus: res.status });
+        return;
+      }
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0){
+        select.innerHTML = '<option value="">No patients available</option>';
+        select.disabled = true;
+        return;
+      }
+      select.innerHTML = '<option value="">Select patient</option>';
+      data.forEach(p => {
+        const value = p.id ?? p.patient_id ?? '';
+        const label = p.name ?? value;
+        const opt = document.createElement('option');
+        opt.value = value;
+        opt.textContent = label + (p.patient_id ? ` — ${p.patient_id}` : '');
+        select.appendChild(opt);
+      });
+      const firstOption = select.querySelector('option[value]:not([value=""])');
+      if(firstOption){ select.value = firstOption.value; select.disabled=false; }
+    } catch(err) {
+      select.innerHTML = '<option value="">Error loading patients</option>';
+      select.disabled = true;
+      setStatus('Network error loading patients', true);
+      debugDump({ patientsLoadError: String(err) });
+    }
+  }
+
+  async function loadCommunications(){
+    const grid = document.getElementById('commGrid');
+    grid.innerHTML = '';
+    try{
+      const res = await fetch(commApi, { credentials: 'same-origin' });
+      if(!res.ok){
+        setStatus(`Failed to load communications: ${res.status}`, true);
+        debugDump({ commLoadStatus: res.status });
+        return;
+      }
+      const data = await res.json();
+      if(!Array.isArray(data) || data.length===0){
+        grid.innerHTML='<p style="grid-column:1/-1;color:#333">No messages yet.</p>';
+        return;
+      }
+      data.forEach(c => {
+        const card = document.createElement('div');
+        card.className = 'communication-card';
+        const patientLabel = c.patient_name ?? c.patient_display ?? c.patient ?? (c.patient_id ?? '-');
+        const msg = c.message ?? '';
+        const created = c.created_at ? new Date(c.created_at).toLocaleString() : '-';
+        card.innerHTML = `
+          <div class="meta">
+            <strong>To: ${patientLabel}</strong>
+            <p style="margin-top:6px">${msg}</p>
+            <div style="margin-top:8px;color:#666;font-size:13px">Sent: ${created}</div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }catch(err){
+      setStatus('Network error while loading communications', true);
+      debugDump({ commLoadError: String(err) });
+    }
+  }
+
+  document.getElementById('commForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    setStatus('Sending...');
+    debugDump({});
+    const form = e.target;
+    const body = {};
+    const patientVal = form.patient.value;
+    if(!patientVal){ setStatus('Select a patient', true); return; }
+    body.patient = patientVal;
+    if(form.message.value) body.message = form.message.value;
+
+    const csrf = getCSRFToken();
+    if(!csrf){ setStatus('CSRF token missing', true); return; }
+
+    try{
+      const res = await fetch(commApi,{
+        method:'POST',
+        credentials:'same-origin',
+        headers:{ 'Content-Type':'application/json', 'X-CSRFToken': csrf },
+        body: JSON.stringify(body)
+      });
+      let resData;
+      try { resData = await res.json(); } catch(e) { resData = await res.text(); }
+      if(!res.ok){
+        const msg = formatApiErrors(resData);
+        setStatus(`Error: ${msg}`, true);
+        debugDump(resData);
+        return;
+      }
+      setStatus('Message sent successfully!');
+      form.reset();
+      await loadCommunications();
+    }catch(err){
+      setStatus('Network error while sending message', true);
+      debugDump({ submitError: String(err) });
+    }
+  });
+
+  (async function init(){ await loadPatients(); await loadCommunications(); })();
+</script>
+</body>
+</html>

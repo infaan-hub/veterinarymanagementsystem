@@ -1,0 +1,193 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Allergies - Veterinary</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+
+<style>
+/* ===== same CSS – unchanged ===== */
+:root{
+  --card-bg: rgba(255,255,255,0.72);
+  --card-shadow: 0 18px 40px rgba(0,0,0,0.18);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  font-family:"Segoe UI",Tahoma,Verdana,sans-serif;
+  background-image:url("https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg");
+  background-size:cover;
+  background-position:center;
+  background-repeat:repeat;
+}
+.layout{display:flex;height:100vh;padding:24px;gap:20px}
+.sidebar{
+  width:260px;background:var(--card-bg);backdrop-filter:blur(14px);
+  box-shadow:var(--card-shadow);border-radius:18px;padding:24px 18px
+}
+.nav a{
+  display:flex;padding:12px 16px;border-radius:12px;
+  text-decoration:none;font-weight:600;color:#111;margin-bottom:8px
+}
+.nav a.active,.nav a:hover{background:#000;color:#fff}
+.main{flex:1;overflow:auto}
+.container{max-width:1100px;margin:auto;padding:36px 20px}
+.hero,.form-card,.allergy-card{
+  background:var(--card-bg);backdrop-filter:blur(12px);
+  box-shadow:var(--card-shadow);border-radius:18px
+}
+.form-card{padding:18px;margin-bottom:28px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid .full{grid-column:1/-1}
+input,select,textarea{
+  width:100%;padding:10px;border-radius:12px;border:1px solid #ccc
+}
+textarea{min-height:100px}
+.btn{padding:10px 22px;border-radius:999px;font-weight:700;cursor:pointer}
+.allergies{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px
+}
+.allergy-card{padding:14px}
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2 style="text-align:center">🩺 VMS Doctor</h2>
+    <nav class="nav">
+      <a href="/doctor">Dashboard</a>
+      <a class="active" href="/allergies/">Allergies</a>
+      <a href="/visits/">Visits</a>
+      <a href="/vitals/">Vitals</a>
+      <a href="/medical-notes/">Medical Notes</a>
+      <a href="/medications/">Medications</a>
+      <a href="/documents/">Documents</a>
+      <a href="/treatments/">Treatments</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="container">
+
+      <div class="hero" style="padding:26px;text-align:center;margin-bottom:26px">
+        <h1>Allergies</h1>
+        <p>Record and manage patient allergy alerts.</p>
+      </div>
+
+      <!-- FORM -->
+      <div class="form-card">
+        <form id="allergyForm">
+          {% csrf_token %}
+          <div class="form-grid">
+
+            <div>
+              <label>Patient</label>
+              <select id="patientSelect" name="patient" required>
+                <option value="">Loading patients…</option>
+              </select>
+              <div id="patientHint" style="font-size:13px;margin-top:6px"></div>
+            </div>
+
+            <div>
+              <label>Severity</label>
+              <select name="severity_level">
+                <option value="">(optional)</option>
+                <option>Low</option>
+                <option>Moderate</option>
+                <option>High</option>
+                <option>Critical</option>
+              </select>
+            </div>
+
+            <div class="full">
+              <label>Description</label>
+              <textarea name="description"></textarea>
+            </div>
+
+          </div>
+
+          <div style="text-align:right;margin-top:12px">
+            <button class="btn" type="submit">Add Allergy</button>
+          </div>
+
+          <p id="status"></p>
+        </form>
+      </div>
+
+      <!-- LIST -->
+      <div class="allergies" id="allergiesGrid"></div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ✅ RESTORED & FIXED JS -->
+<script>
+const patientSelect = document.getElementById("patientSelect");
+const patientHint   = document.getElementById("patientHint");
+const allergiesGrid = document.getElementById("allergiesGrid");
+const statusEl      = document.getElementById("status");
+
+/* 🔹 LOAD PATIENTS (THIS WAS MISSING) */
+fetch("/api/patients/")
+  .then(res => res.json())
+  .then(data => {
+    patientSelect.innerHTML = '<option value="">Select patient</option>';
+    data.forEach(p => {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = `${p.name} (${p.patient_id})`;
+      patientSelect.appendChild(opt);
+    });
+    patientHint.textContent = `${data.length} patients found`;
+  })
+  .catch(err => {
+    patientSelect.innerHTML = '<option value="">Failed to load patients</option>';
+    console.error(err);
+  });
+
+/* 🔹 LOAD ALLERGIES */
+function loadAllergies(){
+  fetch("/api/allergies/")
+    .then(res => res.json())
+    .then(data => {
+      allergiesGrid.innerHTML = "";
+      data.forEach(a => {
+        allergiesGrid.innerHTML += `
+          <div class="allergy-card">
+            <strong>${a.patient_name || "Patient"}</strong><br>
+            <small>Severity: ${a.severity_level || "N/A"}</small>
+            <p>${a.description || ""}</p>
+          </div>`;
+      });
+    });
+}
+loadAllergies();
+
+/* 🔹 SUBMIT FORM */
+document.getElementById("allergyForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+
+  fetch("/api/allergies/", {
+    method:"POST",
+    headers:{ "X-CSRFToken":"{{ csrf_token }}" },
+    body:formData
+  })
+  .then(res => res.json())
+  .then(() => {
+    statusEl.textContent = "✅ Allergy saved";
+    e.target.reset();
+    loadAllergies();
+  });
+});
+</script>
+
+</body>
+</html>

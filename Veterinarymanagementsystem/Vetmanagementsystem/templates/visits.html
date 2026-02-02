@@ -1,0 +1,345 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Visits - Veterinary</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+:root{
+  --card-bg: rgba(255,255,255,0.72);
+  --card-shadow: 0 18px 40px rgba(0,0,0,0.18);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  font-family:"Segoe UI",Tahoma,Verdana,sans-serif;
+  background-image:url("https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg");
+  background-size:cover;
+  background-position:center;
+  background-repeat:repeat;
+  color:#111;
+}
+
+/* ===== Layout ===== */
+.layout{display:flex;height:100vh;gap:20px;padding:24px}
+
+/* ===== Sidebar ===== */
+.sidebar{
+  width:260px;
+  background:var(--card-bg);
+  backdrop-filter:blur(14px);
+  box-shadow:var(--card-shadow);
+  border-radius:18px;
+  padding:24px 18px;
+  display:flex;
+  flex-direction:column;
+}
+.sidebar h2{
+  text-align:center;
+  margin:0 0 20px;
+  font-size:22px;
+}
+.nav a{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 16px;
+  border-radius:12px;
+  margin-bottom:8px;
+  text-decoration:none;
+  font-weight:600;
+  color:#111;
+}
+.nav a.active,.nav a:hover{
+  background:rgba(0,0,0,0.85);
+  color:#fff;
+}
+
+/* ===== Main ===== */
+.main{flex:1;overflow:auto}
+
+/* ===== Container ===== */
+.container{max-width:1100px;margin:0 auto;padding:0 20px}
+
+/* ===== Hero ===== */
+.hero{
+  background:var(--card-bg);
+  backdrop-filter: blur(12px) saturate(120%);
+  box-shadow: var(--card-shadow);
+  border-radius: 18px;
+  padding: 28px 22px;
+  text-align:center;
+  margin-bottom:26px;
+}
+.hero h1{margin:0 0 8px;font-size:28px}
+.hero p{margin:0;color:#222}
+
+/* ===== Buttons ===== */
+.btn{
+  display:inline-block;
+  padding:10px 20px;
+  border-radius:999px;
+  font-weight:700;
+  border:1px solid rgba(0,0,0,0.12);
+  background: rgba(255,255,255,0.42);
+  cursor:pointer;
+}
+.btn:hover{
+  transform:translateY(-3px);
+  background:rgba(0,0,0,0.85);
+  color:#fff;
+}
+
+/* ===== Form ===== */
+.form-card{
+  max-width:880px;
+  margin:0 auto 28px;
+  background:var(--card-bg);
+  backdrop-filter: blur(12px) saturate(120%);
+  box-shadow: var(--card-shadow);
+  border-radius: 18px;
+  padding: 18px;
+}
+.form-grid{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:12px;
+  align-items:center;
+}
+.form-grid .full { grid-column: 1 / -1; }
+label{display:block;font-weight:600;margin-bottom:6px}
+input,select,textarea{
+  width:100%;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(0,0,0,0.12);
+  font-size:14px;
+  box-sizing:border-box;
+}
+textarea{min-height:80px;border-radius:12px;padding:10px}
+.status{margin-top:10px;font-weight:600}
+
+/* ===== Visits Cards ===== */
+.visits{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap:18px;
+}
+.visit-card{
+  background:var(--card-bg);
+  backdrop-filter: blur(12px) saturate(120%);
+  box-shadow: var(--card-shadow);
+  border-radius:16px;
+  padding:14px;
+  transition: transform .18s ease, box-shadow .18s ease;
+  overflow:hidden;
+}
+.visit-card:hover{
+  transform: translateY(-6px);
+  box-shadow:0 30px 60px rgba(0,0,0,0.25);
+}
+.visit-meta { font-size:14px; color:#222; line-height:1.4; }
+
+@media(max-width:960px){.form-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.form-grid{grid-template-columns:1fr}.container{padding:20px}}
+@media(max-width:900px){.layout{flex-direction:column}.sidebar{width:100%}}
+</style>
+</head>
+
+<body>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>🩺 VMS Doctor</h2>
+    <nav class="nav">
+      <a href="/doctor">Dashboard</a>
+      <a class="active" href="/visits/">Visits</a>
+      <a href="/allergies/">Allergies</a>
+      <a href="/vitals/">Vitals</a>
+      <a href="/medical-notes/">Medical Notes</a>
+      <a href="/medications/">Medications</a>
+      <a href="/documents/">Documents</a>
+      <a href="/treatments/">Treatments</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="container">
+
+      <div class="hero">
+        <h1>Visits</h1>
+        <p>Create and browse visit records. Assign patients, optionally a veterinarian, set visit date and status.</p>
+      </div>
+
+      <div class="form-card">
+        <form id="visitForm">
+          {% csrf_token %}
+          <div class="form-grid">
+            <div>
+              <label>Patient</label>
+              <select id="patientSelect" name="patient" required>
+                <option value="">Loading patients...</option>
+              </select>
+              <div id="patientHint" style="margin-top:6px;color:#444;font-size:13px"></div>
+            </div>
+            <div>
+              <label>Veterinarian (optional)</label>
+              <select id="vetSelect" name="veterinarian">
+                <option value="">(not assigned)</option>
+              </select>
+            </div>
+            <div>
+              <label>Visit date & time</label>
+              <input type="datetime-local" name="visit_date" id="visitDate" required />
+            </div>
+            <div>
+              <label>Visit status</label>
+              <select name="visit_status" id="visitStatus" required>
+                <option value="Checked-in">Checked-in</option>
+                <option value="Ready for discharge">Ready for discharge</option>
+                <option value="Discharged">Discharged</option>
+              </select>
+            </div>
+            <div>
+              <label>Location status</label>
+              <input type="text" name="location_status" placeholder="e.g. Kennel 3" />
+            </div>
+            <div>
+              <label>Age (months)</label>
+              <input type="number" name="age_months" min="0" />
+            </div>
+            <div class="full">
+              <label>Notes</label>
+              <textarea name="notes" placeholder="Clinical notes, reason for visit..."></textarea>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:12px;">
+            <button type="submit" class="btn">Add Visit</button>
+          </div>
+
+          <p id="status" class="status"></p>
+          <pre id="debug" style="margin-top:8px;color:#444;font-size:13px"></pre>
+        </form>
+      </div>
+
+      <div class="visits" id="visitsGrid"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const visitsApi = "http://127.0.0.1:8000/api/visits/";
+  const patientsApi = "http://127.0.0.1:8000/api/patients/";
+  const usersApi = "http://127.0.0.1:8000/api/users/";
+
+  function getCSRFToken() {
+    const cookieString = document.cookie || '';
+    for (const c of cookieString.split(';').map(s => s.trim())) {
+      if (c.startsWith('csrftoken=')) return decodeURIComponent(c.split('=')[1]);
+    }
+    const input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input) return input.value;
+    return null;
+  }
+
+  function setStatus(msg, isError=false){
+    const el = document.getElementById('status');
+    el.style.color = isError ? 'crimson' : 'green';
+    el.textContent = msg;
+  }
+
+  function debugDump(obj){
+    document.getElementById('debug').textContent = JSON.stringify(obj, null, 2);
+    console.log('DEBUG:', obj);
+  }
+
+  async function loadPatients(){
+    const select = document.getElementById('patientSelect');
+    const hint = document.getElementById('patientHint');
+    select.disabled = true;
+    select.innerHTML = '<option value="">Loading patients...</option>';
+    hint.textContent = '';
+    try {
+      const res = await fetch(patientsApi, { credentials: 'same-origin' });
+      if (!res.ok) { select.innerHTML='<option value="">Failed</option>'; setStatus('Could not load patients',true); return; }
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length===0){ select.innerHTML='<option value="">No patients</option>'; return; }
+      select.innerHTML = '<option value="">Select patient</option>';
+      data.forEach(p=>{ const opt=document.createElement('option'); opt.value=p.id; opt.textContent=`${p.name} — ${p.patient_id}`; select.appendChild(opt); });
+      const firstOption = select.querySelector('option[value]:not([value=""])');
+      if (firstOption){ select.value=firstOption.value; select.disabled=false; if(data.length===1) hint.textContent=`Auto-selected: ${firstOption.textContent}`;}
+    } catch(err){ select.innerHTML='<option value="">Error loading patients</option>'; setStatus('Network error',true); debugDump({patientsLoadError:String(err)});}
+  }
+
+  async function loadVets(){
+    const select = document.getElementById('vetSelect'); select.innerHTML='<option value="">(not assigned)</option>';
+    try {
+      const res = await fetch(usersApi,{credentials:'same-origin'});
+      if(!res.ok) return;
+      const data=await res.json();
+      if(!Array.isArray(data)||data.length===0) return;
+      data.forEach(u=>{ const opt=document.createElement('option'); opt.value=u.id||u.pk||u.username; opt.textContent=u.full_name||u.username||u.id; select.appendChild(opt); });
+    }catch(err){debugDump({vetsLoadError:String(err)});}
+  }
+
+  function formatApiErrors(resData){ if(!resData)return'Unknown'; if(typeof resData==='string')return resData; if(Array.isArray(resData))return resData.join(', '); if(typeof resData==='object') return Object.entries(resData).map(([k,v])=>Array.isArray(v)?`${k}: ${v.join(', ')}`:`${k}: ${v}`).join(' | '); return JSON.stringify(resData); }
+
+  async function loadVisits(){
+    const grid = document.getElementById('visitsGrid'); grid.innerHTML='';
+    try {
+      const res = await fetch(visitsApi,{credentials:'same-origin'});
+      if(!res.ok){ setStatus(`Failed to load visits: ${res.status}`,true); return;}
+      const data=await res.json();
+      if(!Array.isArray(data)||data.length===0){ grid.innerHTML='<p style="grid-column:1/-1;color:#333">No visits yet.</p>'; return;}
+      data.forEach(v=>{
+        const card=document.createElement('div'); card.className='visit-card';
+        const patientLabel=v.patient_name||v.patient_display||v.patient||v.patient_id||'-';
+        const vetLabel=v.veterinarian_name||v.veterinarian_display||v.veterinarian||'-';
+        const date=v.visit_date?new Date(v.visit_date).toLocaleString():'-';
+        card.innerHTML=`<div class="visit-meta">
+          <strong>Patient: ${patientLabel}</strong><br><small>${date}</small>
+          <p style="margin:8px 0 0">
+            Status: ${v.visit_status||'-'}<br>
+            Location: ${v.location_status||'-'}<br>
+            Age (months): ${v.age_months??'-'}<br>
+            Vet: ${vetLabel}
+          </p>
+          <p style="margin-top:8px;color:#333">${v.notes?v.notes.substring(0,220):''}</p>
+        </div>`;
+        grid.appendChild(card);
+      });
+    }catch(err){ setStatus('Network error loading visits',true); debugDump({visitsLoadError:String(err)});}
+  }
+
+  document.getElementById('visitForm').addEventListener('submit',async e=>{
+    e.preventDefault(); setStatus('Submitting...'); debugDump({});
+    const form=e.target; const body={};
+    const patientVal=form.patient.value; if(!patientVal){ setStatus('Select patient',true); return; }
+    body.patient=patientVal;
+    body.visit_date=form.visit_date.value; if(!body.visit_date){ setStatus('Enter visit date',true); return; }
+    body.visit_status=form.visit_status.value||'Checked-in';
+    if(form.veterinarian && form.veterinarian.value) body.veterinarian=form.veterinarian.value;
+    if(form.location_status && form.location_status.value) body.location_status=form.location_status.value;
+    if(form.age_months && form.age_months.value) body.age_months=form.age_months.value;
+    if(form.notes && form.notes.value) body.notes=form.notes.value;
+    const csrf=getCSRFToken(); if(!csrf){ setStatus('CSRF missing',true); return; }
+    try {
+      const res=await fetch(visitsApi,{
+        method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
+        body:JSON.stringify(body)
+      });
+      let resData; try{ resData=await res.json(); } catch(e){ resData=await res.text(); }
+      if(!res.ok){ setStatus(`Error: ${formatApiErrors(resData)}`,true); debugDump(resData); return; }
+      setStatus('Visit added successfully!'); form.reset();
+      await loadVisits(); await loadPatients();
+    }catch(err){ setStatus('Network error submitting visit',true); debugDump({submitError:String(err)});}
+  });
+
+  (async function init(){ await loadPatients(); await loadVets(); await loadVisits(); })();
+</script>
+</body>
+</html>

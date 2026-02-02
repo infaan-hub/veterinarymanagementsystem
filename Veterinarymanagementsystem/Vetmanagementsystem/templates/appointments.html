@@ -1,0 +1,293 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Appointments - Veterinary</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --card-bg: rgba(255,255,255,0.72);
+  --shadow: 0 18px 40px rgba(0,0,0,0.18);
+  --glass-bg: rgba(255,255,255,0.72);
+  --glass-shadow: 0 18px 40px rgba(0,0,0,0.18);
+}
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;}
+body{
+  background-image:url("https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg");
+  background-size:cover;
+  background-position:center;
+}
+.layout{display:flex;min-height:100vh;gap:20px;padding:20px;}
+.sidebar{
+  width:260px;
+  background:var(--glass-bg);
+  backdrop-filter:blur(14px);
+  box-shadow:var(--glass-shadow);
+  border-radius:18px;
+  padding:24px 18px;
+}
+.sidebar h2{margin:0 0 20px;font-size:22px;text-align:center;}
+.nav a{
+  display:block;
+  padding:12px 16px;
+  border-radius:12px;
+  margin-bottom:8px;
+  text-decoration:none;
+  font-weight:600;
+  color:#111;
+}
+.nav a:hover, .nav a.active{
+  background:rgba(0,0,0,0.85);
+  color:#fff;
+}
+.main{flex:1;}
+.wrap{max-width:1100px;margin:auto}
+.hero{
+  background:var(--card-bg);
+  backdrop-filter:blur(12px);
+  box-shadow:var(--shadow);
+  border-radius:18px;
+  padding:26px;
+  text-align:center;
+  margin-bottom:26px;
+}
+.form-card{
+  max-width:720px;
+  margin:auto;
+  background:var(--card-bg);
+  backdrop-filter:blur(12px);
+  box-shadow:var(--shadow);
+  border-radius:18px;
+  padding:18px;
+}
+label{font-weight:600;margin-bottom:6px;display:block}
+input,select,textarea,button{
+  width:100%;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(0,0,0,0.15);
+  font-size:14px;
+  box-sizing:border-box;
+}
+textarea{resize:none}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.full{grid-column:1/-1}
+.btn{
+  border-radius:999px;
+  padding:10px 20px;
+  font-weight:700;
+  background:rgba(255,255,255,0.5);
+  cursor:pointer;
+}
+.btn:hover{background:#000;color:#fff}
+.cards{
+  margin-top:30px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:18px;
+}
+.card{
+  background:var(--card-bg);
+  backdrop-filter:blur(12px);
+  box-shadow:var(--shadow);
+  border-radius:16px;
+  padding:14px;
+}
+.status { margin-top:10px; font-weight:600; color:#0b5cff; }
+@media (max-width:720px){
+  .layout{flex-direction:column;}
+  .sidebar{width:100%;}
+}
+</style>
+</head>
+
+<body>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>Veterinary Management System(VMS)🩺🐾</h2>
+    <nav class="nav">
+      <a href="/home/">Dashboard</a>
+      <a href="/patients/">Patients</a>
+      <a class="active" href="/appointments/">Appointments</a>
+      <a href="/receipts/">Receipts</a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="wrap">
+      <div class="hero">
+        <h1>Appointments</h1>
+        <p>Schedule client appointments</p>
+      </div>
+
+      <div class="form-card">
+        <form id="appointmentForm">
+          {% csrf_token %}
+          <div class="grid">
+
+            <!-- Client Selection -->
+            <div class="full">
+              <label>Client</label>
+              {% if request.user.client %}
+                <input type="hidden" id="clientSelect" value="{{ request.user.client.id }}">
+                <input type="text" value="{{ request.user.client.full_name }}" readonly>
+              {% else %}
+                <select id="clientSelect" required>
+                  <option value="">Loading clients...</option>
+                </select>
+              {% endif %}
+            </div>
+
+            <!-- Patient Selection -->
+            <div class="full">
+              <label>Patient</label>
+              <select id="patientSelect" required>
+                <option value="">Select patient</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Date & Time</label>
+              <input type="datetime-local" id="date" required>
+            </div>
+
+            <div class="full">
+              <label>Reason</label>
+              <textarea id="reason" rows="3"></textarea>
+            </div>
+
+          </div>
+
+          <div style="text-align:right;margin-top:14px">
+            <button class="btn" type="submit">Add Appointment</button>
+          </div>
+
+          <p id="status" class="status"></p>
+        </form>
+      </div>
+
+      <div class="cards" id="appointmentsGrid"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const appointmentsApi = "/api/appointments/";
+const clientsApi = "/api/clients/";
+const patientsApi = "/api/patients/";
+
+const initialClientPk = {% if request.user.client %}"{{ request.user.client.id }}"{% else %}""{% endif %};
+
+function csrf(){ return document.querySelector('[name=csrfmiddlewaretoken]').value; }
+function setStatus(msg,isError=false){ const s=document.getElementById('status'); s.textContent=msg; s.style.color=isError?'crimson':'#0b5cff'; }
+function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"'`=\/]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;','/':'&#47;','`':'&#96;','=':'&#61;'}[c]; }); }
+function sanitizeAppointment(a){ return {patient: a.patient_name || a.patient?.name || '', date: a.date || a.appointment_date || '', reason: a.reason || ''}; }
+
+// Load clients for staff/admin
+async function loadClients(){
+  if(initialClientPk) return await loadPatients(initialClientPk);
+
+  const sel = document.getElementById("clientSelect");
+  sel.innerHTML = "<option value=''>Select client</option>";
+  try{
+    const res = await fetch(clientsApi, {credentials:'include'});
+    const data = await res.json();
+    (data||[]).forEach(c=>{
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.full_name || c.username || opt.value;
+      sel.appendChild(opt);
+    });
+    sel.onchange = ()=> loadPatients(sel.value);
+  }catch(err){ sel.innerHTML="<option value=''>Unable to load clients</option>"; console.error(err);}
+}
+
+// Load patients for the selected client
+async function loadPatients(clientPk){
+  const sel = document.getElementById("patientSelect");
+  sel.innerHTML = "<option value=''>Loading patients...</option>";
+  if(!clientPk){ sel.innerHTML="<option value=''>Select patient</option>"; return; }
+
+  try{
+    const res = await fetch(`${patientsApi}?client=${clientPk}`, {credentials:'include'});
+    const data = await res.json();
+    sel.innerHTML = "<option value=''>Select patient</option>";
+    if(data && data.length){
+      data.forEach((p,index)=>{
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name || (`${p.species||''} ${p.breed||''}`).trim() || opt.value;
+        sel.appendChild(opt);
+        if(initialClientPk && index===0) sel.value = opt.value; // auto-select first patient
+      });
+    }else{
+      sel.innerHTML = "<option value=''>No patients</option>";
+    }
+  }catch(err){
+    sel.innerHTML="<option value=''>Unable to load patients</option>";
+    console.error(err);
+  }
+}
+
+// Load appointments
+async function loadAppointments(){
+  const grid = document.getElementById("appointmentsGrid");
+  grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#444">Loading appointments...</p>';
+  try{
+    const res = await fetch(appointmentsApi,{credentials:'include'});
+    const data = await res.json();
+    const list = Array.isArray(data)?data:(data.results||[]);
+    grid.innerHTML='';
+    if(!list.length){ grid.innerHTML='<p style="grid-column:1/-1;text-align:center;color:#444">No appointments yet.</p>'; return; }
+    list.forEach(raw=>{
+      const a = sanitizeAppointment(raw);
+      const card = document.createElement('div'); card.className='card';
+      const when = a.date ? (new Date(a.date)).toLocaleString() : 'No date';
+      card.innerHTML=`<strong>${escapeHtml(a.patient||'Unknown patient')}</strong>
+        <div>Date: ${escapeHtml(when)}</div>
+        <div>${escapeHtml(a.reason||'')}</div>`;
+      grid.appendChild(card);
+    });
+  }catch(err){ grid.innerHTML='<p style="grid-column:1/-1;text-align:center;color:#b00020">Could not load appointments.</p>'; console.error(err);}
+}
+
+// Submit appointment
+document.getElementById("appointmentForm").onsubmit = async function(e){
+  e.preventDefault(); setStatus('Submitting...');
+  try{
+    const client = initialClientPk || document.getElementById("clientSelect").value;
+    const patient = document.getElementById("patientSelect").value;
+    const date = document.getElementById("date").value;
+    const reason = document.getElementById("reason").value;
+    if(!client||!patient||!date){ setStatus('Please select client, patient and date/time',true); return; }
+
+    const fd = new FormData();
+    fd.append('client',client); fd.append('patient',patient); fd.append('date',date); fd.append('reason',reason);
+
+    const res = await fetch(appointmentsApi,{
+      method:'POST', credentials:'include', headers:{'X-CSRFToken':csrf()}, body:fd
+    });
+
+    if(!res.ok){ const err=await res.json().catch(()=>({detail:'Request failed'})); setStatus(JSON.stringify(err),true); return; }
+
+    setStatus('Appointment created');
+    document.getElementById("reason").value='';
+    document.getElementById("date").value='';
+    loadAppointments();
+  }catch(err){ console.error(err); setStatus('An error occurred',true);}
+};
+
+// Initialize
+(async function init(){
+  await loadClients();
+  await loadAppointments();
+})();
+</script>
+</body>
+</html>

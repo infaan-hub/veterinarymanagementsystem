@@ -1,0 +1,246 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Customer Overview | VMS</title>
+<style>
+:root{
+  --glass-bg: rgba(255,255,255,.72);
+  --glass-shadow: 0 18px 40px rgba(0,0,0,.18);
+  --primary:#0b5cff;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:"Segoe UI",Tahoma,Verdana,sans-serif;background-image:url("https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg");background-size:cover;background-position:center;color:#111;}
+.layout{display:flex;height:100vh;padding:24px;gap:20px}
+.sidebar{width:260px;background:var(--glass-bg);backdrop-filter:blur(14px);box-shadow:var(--glass-shadow);border-radius:20px;padding:24px 18px}
+.sidebar h2{text-align:center;margin-bottom:22px}
+.nav a{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;margin-bottom:8px;font-weight:600;text-decoration:none;color:#111}
+.nav a:hover,.nav a.active{background:rgba(0,0,0,.85);color:#fff}
+.main{flex:1;display:flex;flex-direction:column;gap:20px}
+.topbar{background:var(--glass-bg);backdrop-filter:blur(14px);box-shadow:var(--glass-shadow);border-radius:18px;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:10}
+.topbar h1{margin:0;font-size:22px}
+.profile{position:relative}
+.profile-btn{display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.45);border:1px solid rgba(0,0,0,.15);font-weight:600;cursor:pointer}
+.profile-menu{position:absolute;right:0;top:54px;width:240px;background:var(--glass-bg);backdrop-filter:blur(14px);box-shadow:var(--glass-shadow);border-radius:14px;padding:16px;display:none;z-index:9999}
+.profile-menu.show{display:block}
+.profile-menu p{margin:0 0 8px;font-size:14px}
+.profile-menu a{display:block;margin-top:10px;padding:10px;border-radius:10px;background:rgba(0,0,0,.85);color:#fff;text-align:center;text-decoration:none;font-weight:700}
+.content{flex:1;background:var(--glass-bg);backdrop-filter:blur(14px);box-shadow:var(--glass-shadow);border-radius:22px;padding:28px;overflow:auto}
+.overview-section{margin-top:20px}
+.overview-section h2{font-size:20px;font-weight:700;margin-bottom:16px}
+.overview-table{width:100%;border-collapse:collapse;background:rgba(255,255,255,.65);backdrop-filter:blur(14px);border-radius:12px;overflow:hidden;box-shadow:0 18px 35px rgba(0,0,0,.18)}
+.overview-table th, .overview-table td{padding:12px 16px;text-align:left;border-bottom:1px solid rgba(0,0,0,.1)}
+.overview-table th{background:rgba(11,92,255,.1);font-weight:700}
+.overview-table tr:hover{background:rgba(0,0,0,.05);cursor:pointer}
+.section-tabs{display:flex;gap:16px;margin-bottom:16px}
+.section-tab{padding:8px 16px;border-radius:999px;background:rgba(255,255,255,.6);cursor:pointer;font-weight:600;transition:.25s}
+.section-tab.active{background:var(--primary);color:#fff}
+</style>
+</head>
+
+<body>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>🩺 VMS Customer</h2>
+    <nav class="nav">
+      <a href="/">Dashboard</a>
+      <a class="active" href="/customer/overview/">Overview</a>
+      <a href="/customer/allergies/">Allergies</a>
+      <a href="/customer/visits/">Visits</a>
+      <a href="/customer/vitals/">Vitals</a>
+      <a href="/customer/medical-notes/">Medical Notes</a>
+      <a href="/customer/medications/">Medications</a>
+      <a href="/customer/documents/">Documents</a>
+      <a href="/customer/treatments/">Treatments</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="topbar">
+      <h1>Overview 🩺</h1>
+      <div class="profile">
+        <div class="profile-btn" id="profileBtn">{{ request.user.username }}</div>
+        <div class="profile-menu" id="profileMenu">
+          <p><strong>Name</strong><br>{{ request.user.get_full_name|default:request.user.username }}</p>
+          <p><strong>Email</strong><br>{{ request.user.email }}</p>
+          <a href="{% url 'logout' %}">Logout</a>
+        </div>
+      </div>
+    </div>
+
+    <section class="content">
+      <div class="section-tabs">
+        <div class="section-tab active" data-tab="allergies">Allergies</div>
+        <div class="section-tab" data-tab="visits">Visits</div>
+        <div class="section-tab" data-tab="vitals">Vitals</div>
+        <div class="section-tab" data-tab="medical_notes">Medical Notes</div>
+        <div class="section-tab" data-tab="medications">Medications</div>
+        <div class="section-tab" data-tab="documents">Documents</div>
+        <div class="section-tab" data-tab="treatments">Treatments</div>
+      </div>
+
+      <!-- Allergies -->
+      <div class="overview-section" id="allergies-tab">
+        <h2>Allergies</h2>
+        <table class="overview-table">
+          <thead><tr><th>Patient</th><th>Severity</th><th>Description</th></tr></thead>
+          <tbody>
+            {% for allergy in allergies %}
+            <tr>
+              <td>{{ allergy.patient.name }}</td>
+              <td>{{ allergy.severity_level }}</td>
+              <td>{{ allergy.description }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3">No allergies found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Visits -->
+      <div class="overview-section" id="visits-tab" style="display:none">
+        <h2>Visits</h2>
+        <table class="overview-table">
+          <thead><tr><th>Date</th><th>Doctor</th><th>Notes</th></tr></thead>
+          <tbody>
+            {% for visit in visits %}
+            <tr>
+              <td>{{ visit.visit_date }}</td>
+              <td>{{ visit.veterinarian.get_full_name }}</td>
+              <td>{{ visit.notes }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3">No visits found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Vitals -->
+      <div class="overview-section" id="vitals-tab" style="display:none">
+        <h2>Vitals</h2>
+        <table class="overview-table">
+          <thead><tr><th>Date</th><th>Weight (lbs)</th><th>Temperature</th><th>Notes</th></tr></thead>
+          <tbody>
+            {% for vital in vitals %}
+            <tr>
+              <td>{{ vital.visit.visit_date }}</td>
+              <td>{{ vital.weight_lbs }}</td>
+              <td>{{ vital.temperature }}</td>
+              <td>{{ vital.visit.notes }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">No vitals found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Medical Notes -->
+      <div class="overview-section" id="medical_notes-tab" style="display:none">
+        <h2>Medical Notes</h2>
+        <table class="overview-table">
+          <thead><tr><th>Date</th><th>Doctor</th><th>Note</th></tr></thead>
+          <tbody>
+            {% for note in medical_notes %}
+            <tr>
+              <td>{{ note.visit.visit_date }}</td>
+              <td>{{ note.visit.veterinarian.get_full_name }}</td>
+              <td>{{ note.note }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3">No medical notes found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Medications -->
+      <div class="overview-section" id="medications-tab" style="display:none">
+        <h2>Medications</h2>
+        <table class="overview-table">
+          <thead><tr><th>Name</th><th>Dosage</th><th>Frequency</th><th>Duration</th></tr></thead>
+          <tbody>
+            {% for med in medications %}
+            <tr>
+              <td>{{ med.name }}</td>
+              <td>{{ med.dosage }}</td>
+              <td>{{ med.frequency }}</td>
+              <td>{{ med.duration }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">No medications found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Documents -->
+      <div class="overview-section" id="documents-tab" style="display:none">
+        <h2>Documents</h2>
+        <table class="overview-table">
+          <thead><tr><th>Type</th><th>Issued Date</th><th>File</th></tr></thead>
+          <tbody>
+            {% for doc in documents %}
+            <tr>
+              <td>{{ doc.document_type }}</td>
+              <td>{{ doc.issued_date }}</td>
+              <td><a href="{{ doc.file.url }}" target="_blank">View</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3">No documents found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Treatments -->
+      <div class="overview-section" id="treatments-tab" style="display:none">
+        <h2>Treatments</h2>
+        <table class="overview-table">
+          <thead><tr><th>Date</th><th>Doctor</th><th>Description</th></tr></thead>
+          <tbody>
+            {% for treatment in treatments %}
+            <tr>
+              <td>{{ treatment.visit.visit_date }}</td>
+              <td>{{ treatment.visit.veterinarian.get_full_name }}</td>
+              <td>{{ treatment.treatment_description }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3">No treatments found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+  </main>
+</div>
+
+<script>
+const btn=document.getElementById("profileBtn");
+const menu=document.getElementById("profileMenu");
+btn.onclick=e=>{e.stopPropagation();menu.classList.toggle("show")};
+document.onclick=()=>menu.classList.remove("show");
+
+// Tabs
+const tabs=document.querySelectorAll(".section-tab");
+tabs.forEach(tab=>{
+  tab.onclick=()=>{
+    tabs.forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+    const tabId=tab.dataset.tab+"-tab";
+    document.querySelectorAll(".overview-section").forEach(sec=>{
+      sec.style.display=(sec.id===tabId)?"block":"none";
+    });
+  }
+});
+</script>
+</body>
+</html>

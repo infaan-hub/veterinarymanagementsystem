@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Login - Veterinary</title>
+  <style>
+    :root{
+      --card-bg: rgba(255,255,255,0.72);
+      --card-shadow: 0 18px 40px rgba(0,0,0,0.18);
+    }
+    html,body{height:100%;margin:0}
+    body{
+      font-family:"Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-image:url("https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg");
+      background-size:cover;
+      background-position:center;
+      background-repeat:repeat;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      color:#111;
+      padding:40px 16px;
+      box-sizing:border-box;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+    .login-card{
+      background:var(--card-bg);
+      backdrop-filter:blur(12px) saturate(120%);
+      -webkit-backdrop-filter:blur(12px) saturate(120%);
+      box-shadow:var(--card-shadow);
+      border-radius:18px;
+      padding:40px 30px;
+      max-width:400px;
+      width:100%;
+      text-align:center;
+    }
+    .login-card h1{margin:0 0 16px;font-size:28px}
+    .login-card p{margin:0 0 24px;color:#222}
+    form{display:flex;flex-direction:column;gap:14px;text-align:left}
+    input{
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(0,0,0,0.12);
+      font-size:16px;
+      outline:none;
+    }
+    button{
+      padding:10px 18px;
+      border-radius:999px;
+      border:none;
+      background:rgba(255,255,255,0.42);
+      font-weight:700;
+      cursor:pointer;
+      transition:transform .15s ease,background .15s ease,color .15s ease;
+    }
+    button:hover{background:rgba(0,0,0,0.85);color:#fff;transform:translateY(-3px);}
+    .error-msg{color:red;margin-bottom:10px;text-align:center;font-weight:600}
+    @media(max-width:420px){.login-card{padding:30px 20px;border-radius:14px}}
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <h1>Customer Login</h1>
+    <p>Enter your credentials to access your client portal</p>
+
+    {% if error %}
+      <div class="error-msg">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'login' %}">
+      {% csrf_token %}
+      <label for="username">Username</label>
+      <input type="text" name="username" id="username" required>
+
+      <label for="password">Password</label>
+      <input type="password" name="password" id="password" required>
+
+      <button type="submit">Login</button>
+    </form>
+  </div>
+</body>
+</html>

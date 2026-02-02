@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Customer Registration - Veterinary</title>
+<style>
+:root{
+  --glass-bg: rgba(255,255,255,0.72);
+  --glass-shadow: 0 18px 40px rgba(0,0,0,0.18);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  font-family:"Segoe UI",Tahoma,Verdana,sans-serif;
+  background-image:url("https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg");
+  background-size:cover;
+  background-position:center;
+  background-repeat:repeat;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:40px 16px;
+}
+.login-card{
+  background:var(--glass-bg);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  box-shadow:var(--glass-shadow);
+  border-radius:18px;
+  padding:40px 30px;
+  max-width:400px;
+  width:100%;
+  text-align:center;
+}
+.login-card h1{
+  margin:0 0 16px;
+  font-size:28px;
+}
+.login-card p{
+  margin:0 0 24px;
+  color:#222;
+}
+form{display:flex;flex-direction:column;gap:14px;text-align:left}
+input{
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(0,0,0,0.12);
+  font-size:16px;
+  outline:none;
+}
+button{
+  padding:10px 18px;
+  border-radius:999px;
+  border:none;
+  background:rgba(0,0,0,0.85);
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+  transition:transform .15s ease,background .15s ease,color .15s ease;
+}
+button:hover{
+  background:rgba(255,255,255,0.42);
+  color:#111;
+  transform:translateY(-3px);
+}
+.error-msg{
+  color:red;
+  margin-bottom:10px;
+  text-align:center;
+  font-weight:600;
+}
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <h1>Customer Registration</h1>
+  <p>Create a new account to access your client dashboard</p>
+
+  {% if error %}
+    <div class="error-msg">{{ error }}</div>
+  {% endif %}
+
+  <form method="POST">
+    {% csrf_token %}
+
+    <label for="full_name">Full Name</label>
+    <input type="text" name="full_name" id="full_name" required>
+
+    <label for="username">Username</label>
+    <input type="text" name="username" id="username" required>
+
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" required>
+
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" required>
+
+    <button type="submit">Register</button>
+  </form>
+
+  <p style="margin-top:16px;text-align:center;">
+    Already have an account? <a href="{% url 'login' %}">Login</a>
+  </p>
+</div>
+
+</body>
+</html>

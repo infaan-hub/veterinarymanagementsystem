@@ -1,0 +1,501 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Patients - Veterinary</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{
+      --card-bg: rgba(255,255,255,0.72);
+      --card-shadow: 0 18px 40px rgba(0,0,0,0.18);
+      --glass-bg: rgba(255,255,255,0.72);
+      --glass-shadow: 0 18px 40px rgba(0,0,0,0.18);
+    }
+    html,body{height:100%;margin:0;font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;}
+    body{
+      background-image: url("https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: repeat;
+      color:#111;
+    }
+
+    /* ===== Layout ===== */
+    .layout{
+      display:flex;
+      min-height:100vh;
+      gap:20px;
+      padding:20px;
+    }
+
+    /* ===== Sidebar ===== */
+    .sidebar{
+      width:260px;
+      background:var(--glass-bg);
+      backdrop-filter:blur(14px);
+      box-shadow:var(--glass-shadow);
+      border-radius:18px;
+      padding:24px 18px;
+    }
+    .sidebar h2{margin:0 0 20px;font-size:22px;text-align:center;}
+    .nav a{
+      display:block;
+      padding:12px 16px;
+      border-radius:12px;
+      margin-bottom:8px;
+      text-decoration:none;
+      font-weight:600;
+      color:#111;
+    }
+    .nav a:hover, .nav a.active{
+      background:rgba(0,0,0,0.85);
+      color:#fff;
+    }
+
+    /* ===== Main ===== */
+    .main{
+      flex:1;
+    }
+
+    /* ================= Existing Container Styles ================= */
+    .container{max-width:1100px;margin:0 auto;padding:0} /* padding handled inside content */
+
+    .hero{
+      background:var(--card-bg);
+      backdrop-filter: blur(12px) saturate(120%);
+      -webkit-backdrop-filter: blur(12px) saturate(120%);
+      box-shadow: var(--card-shadow);
+      border-radius: 18px;
+      padding: 28px 22px;
+      text-align:center;
+      margin-bottom:26px;
+    }
+    .hero h1{margin:0 0 8px;font-size:28px}
+    .hero p{margin:0;color:#222}
+
+    .btn {
+      display:inline-block;
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-weight:700;
+      text-decoration:none;
+      border:1px solid rgba(0,0,0,0.12);
+      background: rgba(255,255,255,0.42);
+      color:#111;
+      transition: transform .18s ease, background .18s ease, color .18s ease;
+      cursor:pointer;
+    }
+    .btn:hover{ transform: translateY(-3px); background: rgba(0,0,0,0.85); color:#fff; }
+
+    .form-card{
+      max-width:720px;
+      margin: 0 auto 28px;
+      background:var(--card-bg);
+      backdrop-filter: blur(12px) saturate(120%);
+      -webkit-backdrop-filter: blur(12px) saturate(120%);
+      box-shadow: var(--card-shadow);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .form-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      align-items:center;
+    }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    label { display:block; font-weight:600; margin-bottom:6px; }
+    input[type="text"], input[type="email"], input[type="date"], input[type="number"], select {
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(0,0,0,0.12);
+      font-size:14px;
+      box-sizing:border-box;
+    }
+    input[type="file"] { padding:6px 0; }
+    .status { margin-top:10px; font-weight:600; }
+
+    .patients {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap:18px;
+    }
+
+    .patient-card{
+      background:var(--card-bg);
+      backdrop-filter: blur(12px) saturate(120%);
+      -webkit-backdrop-filter: blur(12px) saturate(120%);
+      box-shadow: var(--card-shadow);
+      border-radius:16px;
+      padding:14px;
+      transition: transform .18s ease, box-shadow .18s ease;
+      overflow:hidden;
+    }
+    .patient-card:hover{ transform: translateY(-6px); box-shadow:0 30px 60px rgba(0,0,0,0.25); }
+
+    .patient-photo{
+      width:100%;
+      height:160px;
+      object-fit:cover;
+      border-radius:10px;
+      margin-bottom:10px;
+      background:#eee;
+      display:block;
+    }
+
+    .patient-meta { font-size:14px; color:#222; line-height:1.4; }
+
+    @media (max-width:720px){
+      .form-grid { grid-template-columns: 1fr; }
+      .patient-photo{ height:140px; }
+      .layout{flex-direction:column;}
+      .sidebar{width:100%;}
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Sidebar (Clients link removed) -->
+  <aside class="sidebar">
+    <h2>Veterinary Management System(VMS)🩺🐾</h2>
+    <nav class="nav">
+      <a href="/home/">Dashboard</a>
+      <a class="active" href="/patients/">Patients</a>
+      <a href="/appointments/">Appointments</a>
+      <a href="/receipts/">Receipts</a>
+      <!-- Clients link intentionally hidden/removed -->
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="container">
+      <div class="hero">
+        <h1>Patients🐾</h1>
+        <p>Register new patients and browse existing patients. Photo upload and client assignment supported.</p>
+      </div>
+
+      <div style="text-align:center; margin-bottom:14px;">
+        <a href="{% url 'home' %}" class="btn">Back Home</a>
+      </div>
+
+      <div class="form-card">
+        <form id="patientForm" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="form-grid">
+            <div>
+              <label>Patient Name</label>
+              <input type="text" name="name" required placeholder="e.g. Bella" />
+            </div>
+            <div>
+              <label>Species</label>
+              <input type="text" name="species" required placeholder="e.g. Dog" />
+            </div>
+            <div>
+              <label>Breed</label>
+              <input type="text" name="breed" placeholder="e.g. Labrador" />
+            </div>
+            <div>
+              <label>Gender</label>
+              <input type="text" name="gender" placeholder="e.g. Female" />
+            </div>
+            <div>
+              <label>Color</label>
+              <input type="text" name="color" placeholder="e.g. Brown" />
+            </div>
+            <div>
+              <label>Date of Birth</label>
+              <input type="date" name="date_of_birth" />
+            </div>
+            <div>
+              <label>Weight (kg)</label>
+              <input type="number" name="weight_kg" step="0.01" min="0" />
+            </div>
+            <div>
+              <label>Photo</label>
+              <input type="file" name="photo" accept="image/*" />
+            </div>
+
+            <!-- CLIENT: if logged-in user has client relation, show read-only and include hidden input.
+                 Otherwise show the select so admin/staff can pick a client. -->
+            {% if request.user.client %}
+              <div class="full">
+                <label>Client</label>
+                <input type="text" value="{{ request.user.client.full_name }}" disabled />
+                <input type="hidden" name="client" id="clientInput" value="{{ request.user.client.id }}" />
+                <div id="clientHint" style="margin-top:8px;color:#444;font-size:13px">You are submitting as <strong>{{ request.user.client.full_name }}</strong>.</div>
+              </div>
+            {% else %}
+              <div class="full">
+                <label>Client</label>
+                <select name="client" id="clientSelect" required>
+                  <option value="">Loading clients...</option>
+                </select>
+                <div id="clientHint" style="margin-top:8px;color:#444;font-size:13px"></div>
+              </div>
+            {% endif %}
+          </div>
+
+          <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:12px;">
+            <button type="submit" class="btn">Add Patient</button>
+          </div>
+
+          <p id="status" class="status"></p>
+          <pre id="debug" style="margin-top:8px;color:#444;font-size:13px"></pre>
+        </form>
+      </div>
+
+      <div class="patients" id="patientsGrid">
+        <!-- patient cards injected here -->
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<!-- ===== Scripts ===== -->
+<script>
+  // Use relative endpoints to avoid CORS headaches
+  const apiUrl = "/api/patients/";
+  const clientsApi = "/api/clients/";
+
+  // server-provided logged-in client info (if any)
+  const loggedClientId = {% if request.user.client %} "{{ request.user.client.id }}" {% else %} null {% endif %};
+  const loggedClientName = {% if request.user.client %} "{{ request.user.client.full_name|escapejs }}" {% else %} null {% endif %};
+
+  function getCSRFToken() {
+    const match = document.cookie.match(/(^|;)\s*csrftoken=([^;]+)/);
+    return match ? decodeURIComponent(match[2]) : "";
+  }
+
+  function setStatus(msg, isError=false){
+    const el = document.getElementById('status');
+    el.textContent = msg;
+    el.style.color = isError ? '#b00020' : '#0b5cff';
+  }
+
+  // sanitize objects/arrays before showing in debug or UI:
+  // removes any 'client' fields and other client-identifiers so they are never displayed.
+  function sanitizeForDisplay(input) {
+    if (input === null || input === undefined) return input;
+    // primitives
+    if (typeof input !== 'object') return input;
+    // arrays
+    if (Array.isArray(input)) return input.map(item => sanitizeForDisplay(item));
+    // object
+    const out = {};
+    for (const k in input) {
+      if (!Object.prototype.hasOwnProperty.call(input, k)) continue;
+      const lower = k.toLowerCase();
+      // skip client-related keys
+      if (lower === 'client' || lower === 'client_id' || lower === 'client_full_name' || lower === 'client_name') {
+        continue;
+      }
+      // copy/recursively sanitize
+      out[k] = sanitizeForDisplay(input[k]);
+    }
+    return out;
+  }
+
+  function debugDump(obj){
+    const pre = document.getElementById('debug');
+    try {
+      const sanitized = sanitizeForDisplay(obj);
+      pre.textContent = JSON.stringify(sanitized, null, 2);
+    } catch(e){
+      pre.textContent = String(obj);
+    }
+  }
+
+  function generatePatientId(){
+    const rand = Math.floor(Math.random()*900000 + 100000);
+    return `P-${rand}`;
+  }
+
+  async function loadClients(){
+    const select = document.getElementById('clientSelect');
+    if(!select) return;
+    select.innerHTML = '<option value="">Loading clients...</option>';
+    try{
+      const res = await fetch(clientsApi, { credentials: 'include' });
+      if(!res.ok) throw new Error('Failed loading clients');
+      const data = await res.json();
+      select.innerHTML = '<option value="">Select client...</option>';
+      data.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id || c.pk || c.client_id || c.username;
+        opt.textContent = c.full_name ? `${c.full_name} (${opt.value})` : (c.username || opt.value);
+        select.appendChild(opt);
+      });
+      document.getElementById('clientHint').textContent = '';
+    } catch(err){
+      select.innerHTML = '<option value="">Unable to load clients</option>';
+      document.getElementById('clientHint').textContent = 'Could not load clients. Try again later.';
+      console.error(err);
+    }
+  }
+
+  async function loadPatients(){
+    const grid = document.getElementById('patientsGrid');
+    grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#444">Loading patients...</p>';
+    try{
+      const res = await fetch(apiUrl, { credentials: 'include' });
+      if(!res.ok){
+        throw new Error('Failed to load patients');
+      }
+      const data = await res.json();
+      if(!Array.isArray(data) && data.results) {
+        displayPatients(data.results || []);
+      } else {
+        displayPatients(data || []);
+      }
+    } catch(err){
+      grid.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#b00020">Could not load patients.</p>`;
+      console.error(err);
+    }
+  }
+
+  function displayPatients(patients){
+    const grid = document.getElementById('patientsGrid');
+    if(!patients || patients.length === 0){
+      grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#444">No patients yet.</p>';
+      return;
+    }
+    grid.innerHTML = '';
+    patients.forEach(raw => {
+      // sanitize the raw patient object to remove client fields before using in UI
+      const p = sanitizeForDisplay(raw);
+
+      const card = document.createElement('div');
+      card.className = 'patient-card';
+
+      const imgSrc = p.photo || p.photo_url || '';
+      const img = document.createElement('img');
+      img.className = 'patient-photo';
+      img.src = imgSrc || '{% static "img/default-avatar.png" %}';
+      img.alt = p.name || 'Patient';
+
+      const meta = document.createElement('div');
+      meta.className = 'patient-meta';
+      // NOTE: client/owner info intentionally omitted
+      meta.innerHTML = `<strong>${p.name || 'Unnamed'}</strong><br>
+        ${p.species || ''} ${p.breed ? '• ' + p.breed : ''}<br>
+        ${p.gender ? 'Gender: ' + p.gender + '<br>' : ''}
+        ${p.date_of_birth ? 'DOB: ' + p.date_of_birth + '<br>' : ''}`;
+
+      card.appendChild(img);
+      card.appendChild(meta);
+      grid.appendChild(card);
+    });
+  }
+
+  function formatApiErrors(resData){
+    if(!resData) return 'Unknown error';
+    if(typeof resData === 'string') return resData;
+    if(resData.detail) return resData.detail;
+    const parts = [];
+    for(const key in resData){
+      if(Array.isArray(resData[key])) parts.push(`${key}: ${resData[key].join(', ')}`);
+      else parts.push(`${key}: ${resData[key]}`);
+    }
+    return parts.join(' | ');
+  }
+
+  document.getElementById('patientForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    setStatus('Submitting...');
+    debugDump('');
+    const form = e.target;
+    const fd = new FormData();
+
+    const name = form.querySelector('input[name="name"]').value.trim();
+    const species = form.querySelector('input[name="species"]').value.trim();
+    if(!name || !species){
+      setStatus('Please fill required fields', true);
+      return;
+    }
+    fd.append('name', name);
+    fd.append('species', species);
+
+    ['breed','gender','color','date_of_birth','weight_kg'].forEach(k=>{
+      const inp = form.querySelector(`[name="${k}"]`);
+      if(inp && inp.value) fd.append(k, inp.value);
+    });
+
+    let clientValue = null;
+    const hiddenClient = document.getElementById('clientInput');
+    if(hiddenClient){
+      clientValue = hiddenClient.value;
+    } else {
+      const sel = document.getElementById('clientSelect');
+      if(sel) clientValue = sel.value;
+    }
+    if(!clientValue){
+      setStatus('Client must be selected', true);
+      return;
+    }
+    fd.append('client', clientValue);
+
+    const photoInput = form.querySelector('input[name="photo"]');
+    if(photoInput && photoInput.files && photoInput.files.length > 0){
+      fd.append('photo', photoInput.files[0]);
+    }
+
+    fd.append('patient_id', generatePatientId());
+
+    try{
+      const res = await fetch(apiUrl, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'X-CSRFToken': getCSRFToken()
+        },
+        body: fd
+      });
+      const data = await res.json().catch(()=>null);
+      if(!res.ok){
+        const errMsg = formatApiErrors(data) || `Request failed (${res.status})`;
+        setStatus(errMsg, true);
+        debugDump(data);
+        return;
+      }
+
+      setStatus('Patient added successfully.');
+      // sanitize debug output so client id removed
+      debugDump(data);
+
+      form.reset();
+      if(loggedClientName){
+        const clientText = form.querySelector('input[disabled][value]');
+        if(clientText) clientText.value = loggedClientName;
+      }
+
+      loadPatients();
+    } catch(err){
+      setStatus('An error occurred while submitting', true);
+      debugDump(String(err));
+      console.error(err);
+    }
+  });
+
+  // initialize
+  (function init(){
+    if(!loggedClientId){
+      loadClients();
+    } else {
+      const hint = document.getElementById('clientHint');
+      if(hint && loggedClientName){
+        hint.innerHTML = `You are submitting as <strong>${loggedClientName}</strong>.`;
+      }
+    }
+    loadPatients();
+  })();
+</script>
+
+</body>
+</html>

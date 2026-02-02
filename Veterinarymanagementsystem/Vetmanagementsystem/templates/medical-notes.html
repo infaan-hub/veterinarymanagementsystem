@@ -1,0 +1,314 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Medical Notes - Veterinary</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+:root{
+  --card-bg: rgba(255,255,255,0.72);
+  --card-shadow: 0 18px 40px rgba(0,0,0,0.18);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  font-family:"Segoe UI",Tahoma,Verdana,sans-serif;
+  background-image:url("https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg");
+  background-size:cover;
+  background-position:center;
+  background-repeat:repeat;
+  color:#111;
+}
+
+/* ===== Layout ===== */
+.layout{display:flex;height:100vh;gap:20px;padding:24px}
+
+/* ===== Sidebar ===== */
+.sidebar{
+  width:260px;
+  background:var(--card-bg);
+  backdrop-filter:blur(14px);
+  box-shadow:var(--card-shadow);
+  border-radius:18px;
+  padding:24px 18px;
+  display:flex;
+  flex-direction:column;
+}
+.sidebar h2{text-align:center;margin:0 0 20px;font-size:22px}
+.nav a{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 16px;
+  border-radius:12px;
+  margin-bottom:8px;
+  text-decoration:none;
+  font-weight:600;
+  color:#111;
+}
+.nav a.active,.nav a:hover{
+  background:rgba(0,0,0,0.85);
+  color:#fff;
+}
+
+/* ===== Main ===== */
+.main{flex:1;overflow:auto}
+
+/* ===== Container ===== */
+.container{max-width:1100px;margin:0 auto;padding:0 20px}
+
+/* ===== Hero ===== */
+.hero{
+  background:var(--card-bg);
+  backdrop-filter: blur(12px) saturate(120%);
+  box-shadow: var(--card-shadow);
+  border-radius: 18px;
+  padding: 28px 22px;
+  text-align:center;
+  margin-bottom:26px;
+}
+.hero h1{margin:0 0 8px;font-size:28px}
+.hero p{margin:0;color:#222}
+
+/* ===== Buttons ===== */
+.btn{
+  display:inline-block;
+  padding:10px 20px;
+  border-radius:999px;
+  font-weight:700;
+  border:1px solid rgba(0,0,0,0.12);
+  background: rgba(255,255,255,0.42);
+  cursor:pointer;
+}
+.btn:hover{
+  transform:translateY(-3px);
+  background:rgba(0,0,0,0.85);
+  color:#fff;
+}
+
+/* ===== Form ===== */
+.form-card{
+  max-width:920px;
+  margin:0 auto 28px;
+  background:var(--card-bg);
+  backdrop-filter: blur(12px) saturate(120%);
+  box-shadow: var(--card-shadow);
+  border-radius: 18px;
+  padding: 18px;
+}
+.form-grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:12px;
+  align-items:flex-start;
+}
+.form-grid .full { grid-column: 1 / -1; }
+label{display:block;font-weight:600;margin-bottom:6px}
+input,select,textarea{
+  width:100%;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(0,0,0,0.12);
+  font-size:14px;
+  box-sizing:border-box;
+}
+textarea{min-height:120px;padding:10px;border-radius:12px;resize:vertical}
+.status{margin-top:10px;font-weight:600}
+
+/* ===== Notes Cards ===== */
+.notes{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap:18px;
+}
+.note-card{
+  background:var(--card-bg);
+  backdrop-filter: blur(12px) saturate(120%);
+  box-shadow: var(--card-shadow);
+  border-radius:16px;
+  padding:14px;
+  transition: transform .18s ease, box-shadow .18s ease;
+  overflow:hidden;
+}
+.note-card:hover{
+  transform: translateY(-6px);
+  box-shadow:0 30px 60px rgba(0,0,0,0.25);
+}
+.meta{font-size:14px;color:#222;line-height:1.4;}
+
+@media(max-width:720px){.form-grid{grid-template-columns:1fr}.container{padding:20px}}
+@media(max-width:900px){.layout{flex-direction:column}.sidebar{width:100%}}
+</style>
+</head>
+
+<body>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>🩺 VMS Doctor</h2>
+    <nav class="nav">
+      <a href="/doctor">Dashboard</a>
+      <a href="/visits/">Visits</a>
+      <a href="/allergies/">Allergies</a>
+      <a href="/vitals/">Vitals</a>
+      <a class="active" href="/medical-notes/">Medical Notes</a>
+      <a href="/medications/">Medications</a>
+      <a href="/documents/">Documents</a>
+      <a href="/treatments/">Treatments</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="container">
+
+      <div class="hero">
+        <h1>Medical Notes</h1>
+        <p>Create clinical notes, prescriptions, observations and browse past notes.</p>
+      </div>
+
+      <div class="form-card">
+        <form id="noteForm">
+          {% csrf_token %}
+          <div class="form-grid">
+            <div>
+              <label>Patient</label>
+              <select id="patientSelect" name="patient" required>
+                <option value="">Loading patients...</option>
+              </select>
+              <div id="patientHint" style="margin-top:6px;color:#444;font-size:13px"></div>
+            </div>
+
+            <div>
+              <label>Note Type</label>
+              <select name="note_type" id="noteType">
+                <option value="Observation">Observation</option>
+                <option value="Treatment">Treatment</option>
+                <option value="Prescription">Prescription</option>
+                <option value="Lab">Lab result</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Veterinarian (optional)</label>
+              <select id="vetSelect" name="veterinarian">
+                <option value="">(not assigned)</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Title</label>
+              <input type="text" name="title" placeholder="Brief title (e.g. Post-op check)" />
+            </div>
+
+            <div class="full">
+              <label>Note / Details</label>
+              <textarea name="body" placeholder="Write the clinical note, instructions, prescription etc." required></textarea>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:12px;">
+            <button type="submit" class="btn">Add Note</button>
+          </div>
+
+          <p id="status" class="status"></p>
+          <pre id="debug" style="margin-top:8px;color:#444;font-size:13px"></pre>
+        </form>
+      </div>
+
+      <div class="notes" id="notesGrid"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+// API endpoints
+const notesApi = "http://127.0.0.1:8000/api/medical-notes/";
+const patientsApi = "http://127.0.0.1:8000/api/patients/";
+const usersApi = "http://127.0.0.1:8000/api/users/";
+
+// CSRF helper
+function getCSRFToken() {
+  const cookieString = document.cookie || '';
+  for (const c of cookieString.split(';').map(s=>s.trim())) if(c.startsWith('csrftoken=')) return decodeURIComponent(c.split('=')[1]);
+  const input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+  return input?.value || null;
+}
+
+// Status / debug
+function setStatus(msg,isError=false){ const el=document.getElementById('status'); el.style.color=isError?'crimson':'green'; el.textContent=msg; }
+function debugDump(obj){document.getElementById('debug').textContent=JSON.stringify(obj,null,2);console.log(obj);}
+function formatApiErrors(resData){ if(!resData) return 'Unknown error'; if(typeof resData==='string') return resData; if(Array.isArray(resData)) return resData.join(', '); if(typeof resData==='object'){ return Object.entries(resData).map(([k,v])=>Array.isArray(v)?`${k}: ${v.join(', ')}`:`${k}: ${v}`).join(' | ');} return JSON.stringify(resData); }
+
+// Load patients
+async function loadPatients(){
+  const select=document.getElementById('patientSelect'); const hint=document.getElementById('patientHint');
+  select.disabled=true; select.innerHTML='<option value="">Loading patients...</option>'; hint.textContent='';
+  try{
+    const res=await fetch(patientsApi,{credentials:'same-origin'});
+    if(!res.ok){ select.innerHTML='<option value="">Failed to load patients</option>'; setStatus('Could not load patients',true); debugDump({patientsLoadStatus:res.status}); return; }
+    const data=await res.json(); if(!Array.isArray(data)||data.length===0){ select.innerHTML='<option value="">No patients available</option>'; select.disabled=true; return; }
+    select.innerHTML='<option value="">Select patient</option>';
+    data.forEach(p=>{ const value=p.id ?? p.patient_id ?? ''; const label=p.name ?? (p.patient_id || value); const opt=document.createElement('option'); opt.value=value; opt.textContent=label+(p.patient_id?` — ${p.patient_id}`:''); select.appendChild(opt); });
+    select.disabled=false;
+  }catch(err){ select.innerHTML='<option value="">Error loading patients</option>'; select.disabled=true; setStatus('Network error loading patients.',true); debugDump({patientsLoadError:String(err)});}
+}
+
+// Load vets
+async function loadVets(){ const select=document.getElementById('vetSelect'); select.innerHTML='<option value="">(not assigned)</option>';
+  try{ const res=await fetch(usersApi,{credentials:'same-origin'}); if(!res.ok) return; const data=await res.json(); if(!Array.isArray(data)||data.length===0) return;
+    data.forEach(u=>{ const opt=document.createElement('option'); const val=u.id ?? u.pk ?? u.username ?? ''; opt.value=val; opt.textContent=(u.get_full_name||u.full_name||u.username||val); select.appendChild(opt); });
+  }catch(err){ debugDump({vetsLoadError:String(err)});}
+}
+
+// Load notes
+async function loadMedicalNotes(){
+  const grid=document.getElementById('notesGrid'); grid.innerHTML='';
+  try{
+    const res=await fetch(notesApi,{credentials:'same-origin'});
+    if(!res.ok){ setStatus(`Failed to load notes: ${res.status} ${res.statusText}`,true); debugDump({notesLoadStatus:res.status}); return; }
+    const data=await res.json();
+    if(!Array.isArray(data)||data.length===0){ grid.innerHTML='<p style="grid-column:1/-1;color:#333">No medical notes yet.</p>'; return; }
+    data.forEach(n=>{
+      const card=document.createElement('div'); card.className='note-card';
+      const patient=n.patient_name||n.patient_display||n.patient||(n.patient_id||'-');
+      const vet=n.veterinarian_name||n.veterinarian_display||n.veterinarian||'(not set)';
+      const title=n.title?`<strong>${escapeHtml(n.title)}</strong><br/>`:'';
+      const type=n.note_type||'(type not set)';
+      const body=n.body?`<div style="margin-top:8px;color:#333">${escapeHtml(n.body).replace(/\n/g,'<br/>')}</div>`:'';
+      const created=n.created_at?new Date(n.created_at).toLocaleString():'-';
+      card.innerHTML=`<div class="meta">${title}<small>Patient: ${patient} • ${type}</small><div style="margin-top:6px;color:#666;font-size:13px">Vet: ${vet} · ${created}</div>${body}</div>`;
+      grid.appendChild(card);
+    });
+  }catch(err){ setStatus('Network error while loading notes.',true); debugDump({notesLoadError:String(err)});}
+}
+
+// Escape HTML
+function escapeHtml(str){ if(typeof str!=='string') return ''; return str.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+// Submit note
+document.getElementById('noteForm').addEventListener('submit',async e=>{
+  e.preventDefault(); setStatus('Submitting...');
+  const form=e.target; const body={};
+  if(!form.patient.value){ setStatus('Please select a patient.',true); return; } body.patient=form.patient.value;
+  if(form.note_type?.value) body.note_type=form.note_type.value;
+  if(form.title?.value) body.title=form.title.value;
+  if(form.body?.value) body.body=form.body.value;
+  if(form.veterinarian?.value) body.veterinarian=form.veterinarian.value;
+  const csrf=getCSRFToken(); if(!csrf){ setStatus('CSRF token missing.',true); return; }
+  try{
+    const res=await fetch(notesApi,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify(body)});
+    let resData; try{ resData=await res.json(); }catch(e){ resData=await res.text();}
+    if(!res.ok){ setStatus(`Error: ${formatApiErrors(resData)}`,true); debugDump(resData); return; }
+    setStatus('Medical note added!'); form.reset(); await loadMedicalNotes();
+  }catch(err){ setStatus('Network error while submitting.',true); debugDump({submitError:String(err)});}
+});
+
+// Init
+(async function init(){ await loadPatients(); await loadVets(); await loadMedicalNotes(); })();
+</script>
+</body>
+</html>
