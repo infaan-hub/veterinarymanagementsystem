@@ -324,24 +324,62 @@ def overview(request):
     return render(request, 'overview.html', context)
 
 def overview_customer(request):
-    # Get the logged-in client
-    try:
-        client = Client.objects.get(username=request.user.username)
-    except Client.DoesNotExist:
-        client = None
+    """
+    Customer overview:
+    Shows ALL doctor-entered data related to this client's patients
+    """
 
-    if client:
-        patients = Patient.objects.filter(client=client)
-        allergies = AllergyAlert.objects.filter(patient__in=patients)
-        visits = Visit.objects.filter(patient__in=patients)
-        vitals = VitalSigns.objects.filter(visit__patient__in=patients)
-        medical_notes = ClientNote.objects.filter(visit__patient__in=patients)
-        medications = Medication.objects.filter(visit__patient__in=patients)
-        documents = Document.objects.filter(patient__in=patients)
-        treatments = TreatmentPlan.objects.filter(visit__patient__in=patients)
-    else:
-        allergies = visits = vitals = medical_notes = medications = documents = treatments = []
+    # 1️⃣ Get logged-in CLIENT from session (NOT request.user)
+    client_id = request.session.get('client_id')
 
+    if not client_id:
+        # Not logged in as customer
+        return redirect('login')
+
+    client = Client.objects.filter(id=client_id).first()
+
+    if not client:
+        # Safety fallback
+        context = {
+            'allergies': [],
+            'visits': [],
+            'vitals': [],
+            'medical_notes': [],
+            'medications': [],
+            'documents': [],
+            'treatments': [],
+        }
+        return render(request, 'overview_customer.html', context)
+
+    # 2️⃣ Get all patients that belong to this client
+    patients = Patient.objects.filter(client=client)
+
+    # 3️⃣ Fetch ALL doctor-entered data correctly
+    allergies = AllergyAlert.objects.filter(patient__in=patients)
+
+    visits = Visit.objects.filter(patient__in=patients)
+
+    vitals = VitalSigns.objects.filter(
+        visit__patient__in=patients
+    )
+
+    medical_notes = ClientNote.objects.filter(
+        visit__patient__in=patients
+    )
+
+    medications = Medication.objects.filter(
+        visit__patient__in=patients
+    )
+
+    documents = Document.objects.filter(
+        patient__in=patients
+    )
+
+    treatments = TreatmentPlan.objects.filter(
+        visit__patient__in=patients
+    )
+
+    # 4️⃣ Send everything to template
     context = {
         'allergies': allergies,
         'visits': visits,
@@ -351,6 +389,7 @@ def overview_customer(request):
         'documents': documents,
         'treatments': treatments,
     }
+
     return render(request, 'overview_customer.html', context)
 
 
@@ -358,25 +397,50 @@ def overview_customer(request):
 
 
 
-@login_required
-def doctor_dashboard(request):
-    """Doctor dashboard page (staff-only)."""
-    if not request.user.is_staff:
-        return redirect("home")
 
-    # HTML resource pages (NOT API)
-    api_links = {
-        "Allergies": "/allergies/",
-        "Visits": "/visits/",
-        "Vitals": "/vitals/",
-        "Communications": "/communications/",
-        "Medical Notes": "/medical-notes/",
-        "Medications": "/medications/",
-        "Documents": "/documents/",
-        "Treatments": "/treatments/",
+from django.shortcuts import render
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
+from .models import Patient, Visit, TreatmentPlan
+
+
+def doctor_dashboard(request):
+    # ======================
+    # COUNTS
+    # ======================
+    patients_count = Patient.objects.count()
+    visits_count = Visit.objects.count()
+    treatments_count = TreatmentPlan.objects.count()
+
+    # ======================
+    # MONTHLY VISITS CHART
+    # ======================
+    monthly_visits = (
+        Visit.objects
+        .annotate(month=TruncMonth("visit_date"))  # ✅ FIXED HERE
+        .values("month")
+        .annotate(total=Count("id"))
+        .order_by("month")
+    )
+
+    chart_labels = []
+    chart_data = []
+
+    for item in monthly_visits:
+        chart_labels.append(item["month"].strftime("%b %Y"))
+        chart_data.append(item["total"])
+
+    context = {
+        "patients_count": patients_count,
+        "visits_count": visits_count,
+        "treatments_count": treatments_count,
+        "chart_labels": chart_labels,
+        "chart_data": chart_data,
     }
 
-    return render(request, "doctor_dashboard.html", {"api_links": api_links})
+    return render(request, "doctor_dashboard.html", context)
+
+
 
 
 

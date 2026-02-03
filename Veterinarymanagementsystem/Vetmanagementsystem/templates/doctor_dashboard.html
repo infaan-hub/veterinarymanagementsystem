@@ -4,8 +4,8 @@
 <head>
 <meta charset="UTF-8">
 <title>Doctor Dashboard | VMS</title>
+
 <style>
-/* ===== Keep all previous styles ===== */
 :root{
   --glass-bg: rgba(255,255,255,.72);
   --glass-shadow: 0 18px 40px rgba(0,0,0,.18);
@@ -13,204 +13,305 @@
   --success:#1bbf6b;
   --warning:#ff9800;
 }
+
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
-body{font-family:"Segoe UI",Tahoma,Verdana,sans-serif;background-image:url("https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg");background-size:cover;background-position:center;color:#111;}
-.layout{display:flex;height:100vh;padding:24px;gap:20px}
-.sidebar{width:260px;background:var(--glass-bg);backdrop-filter:blur(14px);box-shadow:var(--glass-shadow);border-radius:20px;padding:24px 18px}
-.sidebar h2{text-align:center;margin-bottom:22px}
-.nav a{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;margin-bottom:8px;font-weight:600;text-decoration:none;color:#111}
-.nav a:hover,.nav a.active{background:rgba(0,0,0,.85);color:#fff}
-.main{flex:1;display:flex;flex-direction:column;gap:20px}
-.topbar{background:var(--glass-bg);backdrop-filter:blur(14px);box-shadow:var(--glass-shadow);border-radius:18px;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:10}
-.topbar h1{margin:0;font-size:22px}
-.profile{position:relative}
-.profile-btn{display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.45);border:1px solid rgba(0,0,0,.15);font-weight:600;cursor:pointer}
-.profile-menu{position:absolute;right:0;top:54px;width:240px;background:var(--glass-bg);backdrop-filter:blur(14px);box-shadow:var(--glass-shadow);border-radius:14px;padding:16px;display:none;z-index:9999}
-.profile-menu.show{display:block}
-.profile-menu p{margin:0 0 8px;font-size:14px}
-.profile-menu a{display:block;margin-top:10px;padding:10px;border-radius:10px;background:rgba(0,0,0,.85);color:#fff;text-align:center;text-decoration:none;font-weight:700}
-.content{flex:1;background:var(--glass-bg);backdrop-filter:blur(14px);box-shadow:var(--glass-shadow);border-radius:22px;padding:28px;overflow:auto}
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px}
-.stat-box{background:rgba(255,255,255,.65);backdrop-filter:blur(14px);border-radius:22px;padding:24px;box-shadow:0 18px 35px rgba(0,0,0,.18);text-align:center;cursor:pointer}
-.circle{width:120px;height:120px;border-radius:50%;margin:12px auto;display:flex;align-items:center;justify-content:center;background:conic-gradient(var(--primary) 0%, #e6e6e6 0%)}
-.circle span{width:86px;height:86px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800}
-.wave-wrap{position:relative;height:46px;border-radius:999px;background:#e9eefc;overflow:hidden;margin-top:14px}
-.wave-wrap svg{position:absolute;top:0;left:0;height:100%}
-.stat-title{font-weight:700;opacity:.7;margin-bottom:6px}
-.stat-sub{font-size:13px;opacity:.6;margin-top:6px}
-.chart-box{margin-top:28px;background:rgba(255,255,255,.6);backdrop-filter:blur(12px);border-radius:22px;padding:22px;box-shadow:0 18px 35px rgba(0,0,0,.18)}
-canvas{width:100%;height:240px}
 
-/* ===== Overview Section ===== */
-.overview-section{
-  margin-top:32px;
+body{
+  font-family:"Segoe UI",Tahoma,Verdana,sans-serif;
+  background-image:url("https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg");
+  background-size:cover;
+  background-position:center;
+  color:#111;
 }
-.overview-title{
-  font-size:18px;
-  font-weight:700;
-  margin-bottom:16px;
-}
-.overview-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-  gap:16px;
-}
-.overview-box{
-  background:rgba(255,255,255,.65);
+
+.layout{display:flex;height:100vh;padding:24px;gap:20px}
+
+.sidebar{
+  width:260px;
+  background:var(--glass-bg);
   backdrop-filter:blur(14px);
-  border-radius:18px;
-  padding:16px;
-  text-align:center;
-  cursor:pointer;
-  transition:.25s ease;
+  box-shadow:var(--glass-shadow);
+  border-radius:20px;
+  padding:24px 18px;
 }
-.overview-box:hover{transform:translateY(-5px)}
-.overview-box span{display:block;font-size:20px;font-weight:700;margin-top:8px}
+
+.sidebar h2{text-align:center;margin-bottom:22px}
+
+.nav a{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 16px;
+  border-radius:12px;
+  margin-bottom:8px;
+  font-weight:600;
+  text-decoration:none;
+  color:#111;
+}
+
+.nav a:hover,.nav a.active{
+  background:rgba(0,0,0,.85);
+  color:#fff
+}
+
+.main{flex:1;display:flex;flex-direction:column;gap:20px}
+
+.topbar{
+  background:var(--glass-bg);
+  backdrop-filter:blur(14px);
+  box-shadow:var(--glass-shadow);
+  border-radius:18px;
+  padding:16px 22px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.content{
+  flex:1;
+  background:var(--glass-bg);
+  backdrop-filter:blur(14px);
+  box-shadow:var(--glass-shadow);
+  border-radius:22px;
+  padding:28px;
+  overflow:auto;
+}
+
+/* ================= STATS ================= */
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:22px;
+}
+
+.stat-box{
+  background:rgba(255,255,255,.65);
+  border-radius:22px;
+  padding:24px;
+  box-shadow:0 18px 35px rgba(0,0,0,.18);
+  text-align:center;
+}
+
+/* ================= HEARTBEAT CIRCLE ================= */
+.circle{
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  margin:14px auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  background:#fff;
+  animation: beat var(--beat-speed) infinite ease-in-out;
+}
+
+.circle span{
+  font-size:22px;
+  font-weight:800;
+  z-index:2;
+}
+
+.circle::before{
+  content:"";
+  position:absolute;
+  inset:-10px;
+  border-radius:50%;
+  border:3px solid rgba(255, 11, 11, 0.6);
+  animation:pulse var(--beat-speed) infinite;
+  filter: drop-shadow(0 0 6px rgba(229,57,53,.8));
+}
+
+@keyframes beat{
+  0%{transform:scale(1)}
+  30%{transform:scale(1.08)}
+  60%{transform:scale(.96)}
+  100%{transform:scale(1)}
+}
+
+@keyframes pulse{
+  0%{opacity:.8;transform:scale(.9)}
+  70%{opacity:0;transform:scale(1.25)}
+  100%{opacity:0}
+}
+/* ================= ECG WAVE ================= */
+.wave{
+  margin-top:10px;
+  height:36px;
+  overflow:hidden;
+}
+
+.wave svg{
+  width:200%;
+  height:36px;
+}
+
+.ecg{
+  fill:none;
+  stroke:#e53935;              /* ❤️ RED ECG */
+  stroke-width:3;
+  stroke-dasharray:240;
+  animation:ecgMove var(--beat-speed) linear infinite;
+  filter: drop-shadow(0 0 6px rgba(229,57,53,.8));
+}
+
+@keyframes ecgMove{
+  from{stroke-dashoffset:0}
+  to{stroke-dashoffset:-240}
+}
+
+
+/* ================= CHART ================= */
+.chart-box{
+  margin-top:28px;
+  background:rgba(255,255,255,.6);
+  border-radius:22px;
+  padding:22px;
+}
+
+canvas{width:100%;height:260px}
 </style>
 </head>
 
 <body>
 <div class="layout">
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <h2>🩺 VMS Doctor</h2>
-    <nav class="nav">
-      <a class="active" href="/">Dashboard</a>
-      <a href="/overview/">Overview</a>
-      <a href="/allergies/">Allergies</a>
-      <a href="/visits/">Visits</a>
-      <a href="/vitals/">Vitals</a>
-      <a href="/medical-notes/">Medical Notes</a>
-      <a href="/medications/">Medications</a>
-      <a href="/documents/">Documents</a>
-      <a href="/treatments/">Treatments</a>
-    </nav>
-  </aside>
 
-  <!-- Main -->
-  <main class="main">
-    <div class="topbar">
-      <h1>VMS Dashboard 🐾</h1>
-      <div class="profile">
-        <div class="profile-btn" id="profileBtn">👨‍⚕️ Dr. {{ request.user.username }}</div>
-        <div class="profile-menu" id="profileMenu">
-          <p><strong>Doctor</strong><br>{{ request.user.username }}</p>
-          <p><strong>Email</strong><br>{{ request.user.email }}</p>
-          <a href="{% url 'logout' %}">Logout</a>
-        </div>
-      </div>
-    </div>
+<!-- Sidebar -->
+<aside class="sidebar">
+  <h2>🩺 VMS Doctor Panel</h2>
+  <nav class="nav">
+    <a class="active" href="/doctor/">Dashboard</a>
+    <a href="/overview/">Overview</a>
+    <a href="/allergies/">Allergies</a>
+    <a href="/visits/">Visits</a>
+    <a href="/vitals/">Vitals</a>
+    <a href="/medical-notes/">Medical Notes</a>
+    <a href="/medications/">Medications</a>
+    <a href="/documents/">Documents</a>
+    <a href="/treatments/">Treatments</a>
+  </nav>
+</aside>
 
-    <!-- Content -->
-    <section class="content">
+<!-- Main --> 
+ <main class="main"> 
+  <div class="topbar"> 
+  <h1>VMS Dashboard 🐾</h1> 
+  <div class="profile"> 
+  <div class="profile-btn" id="profileBtn">👨‍⚕️ Dr. {{ request.user.username }}</div> 
+  <div class="profile-menu" id="profileMenu"> 
+    <p><strong>Doctor</strong><br>{{ request.user.username }}</p> 
+    <p><strong>Email</strong><br>{{ request.user.email }}</p> 
+    <a href="{% url 'logout' %}">Logout</a> 
+  </div> 
+</div> 
+</div>
 
-      <!-- Stats -->
-      <div class="stats-grid">
-        <div class="stat-box" data-value="{{ patients_count|default:0 }}" data-max="200">
-          <div class="stat-title">🐶 Patients</div>
-          <div class="circle"><span>{{ patients_count|default:0 }}</span></div>
-          <div class="wave-wrap">
-            <svg viewBox="0 0 120 40" preserveAspectRatio="none">
-              <path d="M0 20 Q30 10 60 20 T120 20 V40 H0 Z" fill="#0b5cff">
-                <animateTransform attributeName="transform" type="translate" from="0 0" to="-40 0" dur="2s" repeatCount="indefinite"/>
-              </path>
-            </svg>
-          </div>
-          <div class="stat-sub">Registered pets</div>
-        </div>
+<!-- ================= STATS ================= -->
+<div class="stats-grid">
 
-        <div class="stat-box" data-value="{{ visits_count|default:0 }}" data-max="120">
-          <div class="stat-title">📅 Visits</div>
-          <div class="circle"><span>{{ visits_count|default:0 }}</span></div>
-          <div class="wave-wrap">
-            <svg viewBox="0 0 120 40" preserveAspectRatio="none">
-              <path d="M0 18 Q25 30 50 18 T120 18 V40 H0 Z" fill="#1bbf6b">
-                <animateTransform attributeName="transform" type="translate" from="0 0" to="-50 0" dur="2.5s" repeatCount="indefinite"/>
-              </path>
-            </svg>
-          </div>
-          <div class="stat-sub">Completed visits</div>
-        </div>
+<div class="stat-box" data-value="{{ patients_count }}" data-max="200">
+  <div>🐶 Patients</div>
+  <div class="circle"><span>0</span></div>
+  <div class="wave">
+    <svg viewBox="0 0 300 40">
+      <path class="ecg"
+        d="M0 20 L30 20 L40 10 L50 30 L60 20 L90 20
+           L100 10 L110 30 L120 20 L300 20"/>
+    </svg>
+  </div>
+</div>
 
-        <div class="stat-box" data-value="{{ treatments_count|default:0 }}" data-max="150">
-          <div class="stat-title">💉 Treatments</div>
-          <div class="circle"><span>{{ treatments_count|default:0 }}</span></div>
-          <div class="wave-wrap">
-            <svg viewBox="0 0 120 40" preserveAspectRatio="none">
-              <path d="M0 22 Q20 12 40 22 T120 22 V40 H0 Z" fill="#ff9800">
-                <animateTransform attributeName="transform" type="translate" from="0 0" to="-45 0" dur="2.2s" repeatCount="indefinite"/>
-              </path>
-            </svg>
-          </div>
-          <div class="stat-sub">Treatments done</div>
-        </div>
-      </div>
+<div class="stat-box" data-value="{{ visits_count }}" data-max="150">
+  <div>📅 Visits</div>
+  <div class="circle"><span>0</span></div>
+  <div class="wave">
+    <svg viewBox="0 0 300 40">
+      <path class="ecg"
+        d="M0 20 L30 20 L40 8 L50 32 L60 20 L90 20
+           L100 8 L110 32 L120 20 L300 20"/>
+    </svg>
+  </div>
+</div>
 
-      <!-- Overview Section -->
-      <div class="overview-section">
-        <div class="overview-title">🔍 Overview Interaction</div>
-        <div class="overview-grid">
-          <!-- Doctor can view customer Appointments -->
-          <div class="overview-box" onclick="location.href='/customer/appointments/'">
-            Appointments
-            <span>{{ customer_appointments_count|default:0 }}</span>
-          </div>
-          <!-- Doctor can view customer Receipts -->
-          <div class="overview-box" onclick="location.href='/customer/receipts/'">
-            Receipts
-            <span>{{ customer_receipts_count|default:0 }}</span>
-          </div>
-          <!-- Customer accessible info -->
-          <div class="overview-box" onclick="location.href='/allergies/'">Allergies</div>
-          <div class="overview-box" onclick="location.href='/visits/'">Visits</div>
-          <div class="overview-box" onclick="location.href='/vitals/'">Vitals</div>
-          <div class="overview-box" onclick="location.href='/medical-notes/'">Medical Notes</div>
-          <div class="overview-box" onclick="location.href='/medications/'">Medications</div>
-          <div class="overview-box" onclick="location.href='/documents/'">Documents</div>
-          <div class="overview-box" onclick="location.href='/treatments/'">Treatments</div>
-        </div>
-      </div>
+<div class="stat-box" data-value="{{ treatments_count }}" data-max="150">
+  <div>💉 Treatments</div>
+  <div class="circle"><span>0</span></div>
+  <div class="wave">
+    <svg viewBox="0 0 300 40">
+      <path class="ecg"
+        d="M0 20 L30 20 L40 12 L50 28 L60 20 L90 20
+           L100 12 L110 28 L120 20 L300 20"/>
+    </svg>
+  </div>
+</div>
 
-      <!-- Chart -->
-      <div class="chart-box">
-        <h3>📈 Monthly Activity</h3>
-        <canvas id="activityChart"></canvas>
-      </div>
+</div>
 
-    </section>
-  </main>
+<!-- ================= CHART ================= -->
+<div class="chart-box">
+  <h3>📈 Monthly Visits</h3>
+  <canvas id="activityChart"></canvas>
+</div>
+
+</section>
+</main>
 </div>
 
 <script>
-/* Profile menu */
-const btn=document.getElementById("profileBtn");
-const menu=document.getElementById("profileMenu");
-btn.onclick=e=>{e.stopPropagation();menu.classList.toggle("show")};
-document.onclick=()=>menu.classList.remove("show");
-
-/* Auto percentage for circles */
+/* ================= LIVE HEARTBEAT ENGINE ================= */
 document.querySelectorAll(".stat-box").forEach(box=>{
-  const v=parseInt(box.dataset.value||0);
-  const m=parseInt(box.dataset.max||100);
-  const p=Math.min((v/m)*100,100);
-  box.querySelector(".circle").style.background=`conic-gradient(var(--primary) ${p}%, #e6e6e6 0%)`;
+  const value = parseInt(box.dataset.value||0);
+  const max = parseInt(box.dataset.max||100);
+  const bpm = Math.min(160, Math.max(50, (value/max)*120));
+  const beatSpeed = (60/bpm).toFixed(2)+"s";
+
+  box.style.setProperty("--beat-speed", beatSpeed);
+
+  const span = box.querySelector("span");
+  let count = 0;
+  const step = Math.max(1, Math.floor(value/25));
+
+  const timer = setInterval(()=>{
+    count += step;
+    if(count>=value){
+      count=value;
+      clearInterval(timer);
+    }
+    span.textContent = count;
+  },40);
 });
 
-/* Chart */
-const c=document.getElementById("activityChart");
-const ctx=c.getContext("2d");
-const data=[10,18,14,22,30,26,34];
-const max=Math.max(...data);
+/* ================= REAL CHART ================= */
+const canvas=document.getElementById("activityChart");
+const ctx=canvas.getContext("2d");
+
+const labels={{ chart_labels|safe }};
+const values={{ chart_data|safe }};
+
+function resize(){
+  canvas.width=canvas.offsetWidth;
+  canvas.height=240;
+}
+resize(); window.addEventListener("resize",resize);
+
 function draw(){
-  ctx.clearRect(0,0,c.width,c.height);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const max=Math.max(...values,1);
+  const step=canvas.width/(values.length-1);
+
   ctx.beginPath();
-  ctx.moveTo(0,c.height);
-  data.forEach((v,i)=>{
-    ctx.lineTo((c.width/(data.length-1))*i, c.height-(v/max)*c.height);
+  ctx.moveTo(0,canvas.height);
+
+  values.forEach((v,i)=>{
+    const x=i*step;
+    const y=canvas.height-(v/max)*(canvas.height-30);
+    ctx.lineTo(x,y);
   });
-  ctx.lineTo(c.width,c.height);
+
+  ctx.lineTo(canvas.width,canvas.height);
   ctx.closePath();
+
   ctx.fillStyle="rgba(11,92,255,.25)";
   ctx.fill();
   ctx.strokeStyle="#0b5cff";
@@ -219,5 +320,326 @@ function draw(){
 }
 draw();
 </script>
+
+</body>
+</html>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Doctor Dashboard | VMS</title>
+
+<style>
+:root{
+  --glass-bg: rgba(255,255,255,.72);
+  --glass-shadow: 0 18px 40px rgba(0,0,0,.18);
+  --primary:#0b5cff;
+  --success:#1bbf6b;
+  --warning:#ff9800;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+
+body{
+  font-family:"Segoe UI",Tahoma,Verdana,sans-serif;
+  background-image:url("https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg");
+  background-size:cover;
+  background-position:center;
+  color:#111;
+}
+
+.layout{display:flex;height:100vh;padding:24px;gap:20px}
+
+.sidebar{
+  width:260px;
+  background:var(--glass-bg);
+  backdrop-filter:blur(14px);
+  box-shadow:var(--glass-shadow);
+  border-radius:20px;
+  padding:24px 18px;
+}
+
+.sidebar h2{text-align:center;margin-bottom:22px}
+
+.nav a{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 16px;
+  border-radius:12px;
+  margin-bottom:8px;
+  font-weight:600;
+  text-decoration:none;
+  color:#111;
+}
+
+.nav a:hover,.nav a.active{
+  background:rgba(0,0,0,.85);
+  color:#fff
+}
+
+.main{flex:1;display:flex;flex-direction:column;gap:20px}
+
+.topbar{
+  background:var(--glass-bg);
+  backdrop-filter:blur(14px);
+  box-shadow:var(--glass-shadow);
+  border-radius:18px;
+  padding:16px 22px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.content{
+  flex:1;
+  background:var(--glass-bg);
+  backdrop-filter:blur(14px);
+  box-shadow:var(--glass-shadow);
+  border-radius:22px;
+  padding:28px;
+  overflow:auto;
+}
+
+/* ================= STATS ================= */
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:22px;
+}
+
+.stat-box{
+  background:rgba(255,255,255,.65);
+  border-radius:22px;
+  padding:24px;
+  box-shadow:0 18px 35px rgba(0,0,0,.18);
+  text-align:center;
+}
+
+/* ================= HEARTBEAT CIRCLE ================= */
+.circle{
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  margin:14px auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  background:#fff;
+  animation: beat var(--beat-speed) infinite ease-in-out;
+}
+
+.circle span{
+  font-size:22px;
+  font-weight:800;
+  z-index:2;
+}
+
+.circle::before{
+  content:"";
+  position:absolute;
+  inset:-10px;
+  border-radius:50%;
+  border:3px solid rgba(255, 11, 11, 0.6);
+  animation:pulse var(--beat-speed) infinite;
+  filter: drop-shadow(0 0 6px rgba(229,57,53,.8));
+}
+
+@keyframes beat{
+  0%{transform:scale(1)}
+  30%{transform:scale(1.08)}
+  60%{transform:scale(.96)}
+  100%{transform:scale(1)}
+}
+
+@keyframes pulse{
+  0%{opacity:.8;transform:scale(.9)}
+  70%{opacity:0;transform:scale(1.25)}
+  100%{opacity:0}
+}
+/* ================= ECG WAVE ================= */
+.wave{
+  margin-top:10px;
+  height:36px;
+  overflow:hidden;
+}
+
+.wave svg{
+  width:200%;
+  height:36px;
+}
+
+.ecg{
+  fill:none;
+  stroke:#e53935;              /* ❤️ RED ECG */
+  stroke-width:3;
+  stroke-dasharray:240;
+  animation:ecgMove var(--beat-speed) linear infinite;
+  filter: drop-shadow(0 0 6px rgba(229,57,53,.8));
+}
+
+@keyframes ecgMove{
+  from{stroke-dashoffset:0}
+  to{stroke-dashoffset:-240}
+}
+
+
+/* ================= CHART ================= */
+.chart-box{
+  margin-top:28px;
+  background:rgba(255,255,255,.6);
+  border-radius:22px;
+  padding:22px;
+}
+
+canvas{width:100%;height:260px}
+</style>
+</head>
+
+<body>
+<div class="layout">
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <h2>🩺 VMS Doctor Panel</h2>
+  <nav class="nav">
+    <a class="active" href="/doctor/">Dashboard</a>
+    <a href="/overview/">Overview</a>
+    <a href="/allergies/">Allergies</a>
+    <a href="/visits/">Visits</a>
+    <a href="/vitals/">Vitals</a>
+    <a href="/medical-notes/">Medical Notes</a>
+    <a href="/medications/">Medications</a>
+    <a href="/documents/">Documents</a>
+    <a href="/treatments/">Treatments</a>
+  </nav>
+</aside>
+
+<!-- Main -->
+<main class="main">
+<div class="topbar">
+  <h1>Veterinary Management System 🐾</h1>
+  <strong> Dr. {{ request.user.username }}</strong>
+</div>
+
+<section class="content">
+
+<!-- ================= STATS ================= -->
+<div class="stats-grid">
+
+<div class="stat-box" data-value="{{ patients_count }}" data-max="200">
+  <div>🐶 Patients</div>
+  <div class="circle"><span>0</span></div>
+  <div class="wave">
+    <svg viewBox="0 0 300 40">
+      <path class="ecg"
+        d="M0 20 L30 20 L40 10 L50 30 L60 20 L90 20
+           L100 10 L110 30 L120 20 L300 20"/>
+    </svg>
+  </div>
+</div>
+
+<div class="stat-box" data-value="{{ visits_count }}" data-max="150">
+  <div>📅 Visits</div>
+  <div class="circle"><span>0</span></div>
+  <div class="wave">
+    <svg viewBox="0 0 300 40">
+      <path class="ecg"
+        d="M0 20 L30 20 L40 8 L50 32 L60 20 L90 20
+           L100 8 L110 32 L120 20 L300 20"/>
+    </svg>
+  </div>
+</div>
+
+<div class="stat-box" data-value="{{ treatments_count }}" data-max="150">
+  <div>💉 Treatments</div>
+  <div class="circle"><span>0</span></div>
+  <div class="wave">
+    <svg viewBox="0 0 300 40">
+      <path class="ecg"
+        d="M0 20 L30 20 L40 12 L50 28 L60 20 L90 20
+           L100 12 L110 28 L120 20 L300 20"/>
+    </svg>
+  </div>
+</div>
+
+</div>
+
+<!-- ================= CHART ================= -->
+<div class="chart-box">
+  <h3>📈 Monthly Visits</h3>
+  <canvas id="activityChart"></canvas>
+</div>
+
+</section>
+</main>
+</div>
+
+<script>
+/* ================= LIVE HEARTBEAT ENGINE ================= */
+document.querySelectorAll(".stat-box").forEach(box=>{
+  const value = parseInt(box.dataset.value||0);
+  const max = parseInt(box.dataset.max||100);
+  const bpm = Math.min(160, Math.max(50, (value/max)*120));
+  const beatSpeed = (60/bpm).toFixed(2)+"s";
+
+  box.style.setProperty("--beat-speed", beatSpeed);
+
+  const span = box.querySelector("span");
+  let count = 0;
+  const step = Math.max(1, Math.floor(value/25));
+
+  const timer = setInterval(()=>{
+    count += step;
+    if(count>=value){
+      count=value;
+      clearInterval(timer);
+    }
+    span.textContent = count;
+  },40);
+});
+
+/* ================= REAL CHART ================= */
+const canvas=document.getElementById("activityChart");
+const ctx=canvas.getContext("2d");
+
+const labels={{ chart_labels|safe }};
+const values={{ chart_data|safe }};
+
+function resize(){
+  canvas.width=canvas.offsetWidth;
+  canvas.height=240;
+}
+resize(); window.addEventListener("resize",resize);
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const max=Math.max(...values,1);
+  const step=canvas.width/(values.length-1);
+
+  ctx.beginPath();
+  ctx.moveTo(0,canvas.height);
+
+  values.forEach((v,i)=>{
+    const x=i*step;
+    const y=canvas.height-(v/max)*(canvas.height-30);
+    ctx.lineTo(x,y);
+  });
+
+  ctx.lineTo(canvas.width,canvas.height);
+  ctx.closePath();
+
+  ctx.fillStyle="rgba(11,92,255,.25)";
+  ctx.fill();
+  ctx.strokeStyle="#0b5cff";
+  ctx.lineWidth=3;
+  ctx.stroke();
+}
+draw();
+</script>
+
 </body>
 </html>
