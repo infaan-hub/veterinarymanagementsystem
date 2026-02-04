@@ -3,19 +3,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Customer Dashboard | VMS</title>
+<title>Dashboard | VMS</title>
 
 <style>
 :root{
   --glass-bg: rgba(255,255,255,.72);
   --glass-shadow: 0 18px 40px rgba(0,0,0,.18);
   --primary:#0b5cff;
-  --success:#1bbf6b;
-  --warning:#ff9800;
 }
 
+/* ===== BASE ===== */
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
+
 body{
   font-family:"Segoe UI",Tahoma,Verdana,sans-serif;
   background-image:url("https://i.pinimg.com/736x/f8/ad/d5/f8add51acaad02b06db9c2c8b1483898.jpg");
@@ -24,10 +24,9 @@ body{
   color:#111;
 }
 
-/* ===== Layout ===== */
 .layout{display:flex;height:100vh;padding:24px;gap:20px}
 
-/* ===== Sidebar ===== */
+/* ===== SIDEBAR ===== */
 .sidebar{
   width:260px;
   background:var(--glass-bg);
@@ -36,7 +35,9 @@ body{
   border-radius:20px;
   padding:24px 18px;
 }
+
 .sidebar h2{text-align:center;margin-bottom:22px}
+
 .nav a{
   display:flex;
   align-items:center;
@@ -48,12 +49,16 @@ body{
   text-decoration:none;
   color:#111;
 }
-.nav a:hover,.nav a.active{background:rgba(0,0,0,.85);color:#fff}
 
-/* ===== Main ===== */
+.nav a:hover,.nav a.active{
+  background:rgba(0,0,0,.85);
+  color:#fff;
+}
+
+/* ===== MAIN ===== */
 .main{flex:1;display:flex;flex-direction:column;gap:20px}
 
-/* ===== Topbar ===== */
+/* ===== TOPBAR ===== */
 .topbar{
   background:var(--glass-bg);
   backdrop-filter:blur(14px);
@@ -64,51 +69,52 @@ body{
   justify-content:space-between;
   align-items:center;
   position:relative;
-  z-index:10;
+  z-index:1000;
 }
-.topbar h1{margin:0;font-size:22px}
 
-/* ===== Profile ===== */
+/* ===== PROFILE ===== */
 .profile{position:relative}
+
 .profile-btn{
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:8px;
   padding:8px 14px;
   border-radius:999px;
-  background:rgba(255,255,255,.45);
+  background:rgba(255,255,255,.55);
   border:1px solid rgba(0,0,0,.15);
-  font-weight:600;
+  font-weight:700;
   cursor:pointer;
 }
+
 .profile-menu{
   position:absolute;
   right:0;
   top:54px;
-  width:240px;
+  width:260px;
   background:var(--glass-bg);
   backdrop-filter:blur(14px);
   box-shadow:var(--glass-shadow);
-  border-radius:14px;
-  padding:16px;
+  border-radius:16px;
+  padding:14px;
   display:none;
   z-index:9999;
 }
+
 .profile-menu.show{display:block}
-.profile-menu p{margin:0 0 8px;font-size:14px}
-.profile-menu a{
-  display:block;
-  margin-top:10px;
+
+.logout-btn{
+  width:100%;
+  border:none;
+  background:#e53935;
+  color:#fff;
   padding:10px;
   border-radius:10px;
-  background:rgba(0,0,0,.85);
-  color:#fff;
-  text-align:center;
-  text-decoration:none;
   font-weight:700;
+  cursor:pointer;
 }
 
-/* ===== Content ===== */
+/* ===== CONTENT ===== */
 .content{
   flex:1;
   background:var(--glass-bg);
@@ -119,156 +125,246 @@ body{
   overflow:auto;
 }
 
-/* ===== Stats Boxes ===== */
+/* ===== STATS ===== */
 .stats-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
   gap:22px;
 }
+
 .stat-box{
   background:rgba(255,255,255,.65);
-  backdrop-filter:blur(14px);
   border-radius:22px;
   padding:24px;
   box-shadow:0 18px 35px rgba(0,0,0,.18);
   text-align:center;
-  cursor:pointer;
 }
+
 .circle{
   width:120px;
   height:120px;
   border-radius:50%;
-  margin:12px auto;
+  margin:14px auto;
   display:flex;
   align-items:center;
   justify-content:center;
-  background:conic-gradient(var(--primary) 0%, #e6e6e6 0%);
-}
-.circle span{
-  width:86px;
-  height:86px;
-  border-radius:50%;
+  position:relative;
   background:#fff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  animation: beat var(--beat-speed) infinite ease-in-out;
+}
+
+.circle span{
   font-size:22px;
   font-weight:800;
 }
-.wave-wrap{
-  position:relative;
-  height:46px;
-  border-radius:999px;
-  background:#e9eefc;
-  overflow:hidden;
-  margin-top:14px;
+
+@keyframes beat{
+  0%{transform:scale(1)}
+  30%{transform:scale(1.08)}
+  60%{transform:scale(.96)}
+  100%{transform:scale(1)}
 }
-.wave-wrap svg{
-  position:absolute;
-  top:0;
-  left:0;
-  height:100%;
+
+/* mini panels */
+.panel-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+  margin-top:18px;
 }
-.stat-title{font-weight:700;opacity:.7;margin-bottom:6px}
-.stat-sub{font-size:13px;opacity:.6;margin-top:6px}
+
+.panel{
+  background:rgba(255,255,255,.9);
+  padding:16px;
+  border-radius:12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  text-align:left;
+}
+
+.small{
+  font-size:13px;color:#555;margin-top:8px;
+}
+
+.chart-wrap{max-width:900px;margin:18px auto}
 </style>
 </head>
 
 <body>
 <div class="layout">
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <h2>VMS🩺🐾</h2>
-    <nav class="nav">
-      <a class="active" href="/">Dashboard</a>
-      <a href="/customer/overview/">Overview</a>
-      <a href="/patients/">Patients</a>
-      <a href="/appointments/">Appointments</a>
-      <a href="/receipts/">Receipts</a>
-    </nav>
-  </aside>
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <h2>VMS🐾Panel</h2>
+  <nav class="nav">
+    <a class="active" href="/">Dashboard</a>
+    <a href="/patients/">Patients</a>
+    <a href="/appointments/">Appointments</a>
+    <a href="/receipts/">Receipts</a>
+    <a href="/documents/">Documents</a>
+    <a href="/overview/">Information Overview</a>
+  </nav>
+</aside>
 
-  <!-- Main -->
-  <main class="main">
-    <div class="topbar">
-      <h1>Veterinary Management System 🐾 Customer Dashboard 🐾</h1>
-      <div class="profile">
-        <div class="profile-btn" id="profileBtn">
-          {% if client %}{{ client.full_name|default:request.user.username }}{% else %}{{ request.user.username }}{% endif %}
-        </div>
-        <div class="profile-menu" id="profileMenu">
-          <p><strong>Name</strong><br>{{ client.full_name|default:request.user.username }}</p>
-          <p><strong>Email</strong><br>{{ client.email|default:request.user.email }}</p>
-          <a href="{% url 'logout' %}">Logout</a>
-        </div>
-      </div>
+<!-- MAIN -->
+<main class="main">
+
+<div class="topbar">
+  <h1>
+    {% if dashboard_for == 'doctor' %}
+      Veterinary Management System🐾
+    {% else %}
+       VMS 🐾
+    {% endif %}
+  </h1>
+
+  <div class="profile">
+    <div class="profile-btn" id="profileBtn">
+      {% if dashboard_for == 'doctor' %}
+        {{ request.user.get_full_name|default:request.user.username }} ▼
+      {% else %}
+        {{ client.full_name|default:client.username }} ▼
+      {% endif %}
     </div>
 
-    <section class="content">
-      <div class="stats-grid">
-
-        <!-- Patients -->
-        <div class="stat-box" onclick="location.href='/patients/'" data-value="{{ patients_count|default:0 }}" data-max="200">
-          <div class="stat-title">🐶 Patients</div>
-        <div class="circle"><span>{{ patients_count|default:0 }}</span></div>
-          <div class="wave-wrap">
-            <svg viewBox="0 0 120 40" preserveAspectRatio="none">
-              <path d="M0 20 Q30 10 60 20 T120 20 V40 H0 Z" fill="#0b5cff">
-                <animateTransform attributeName="transform" type="translate" from="0 0" to="-40 0" dur="2s" repeatCount="indefinite"/>
-              </path>
-            </svg>
-          </div>
-          <div class="stat-sub">Registered pets</div>
-        </div>
-
-        <!-- Appointments -->
-        <div class="stat-box" onclick="location.href='/appointments/'" data-value="{{ appointments_count|default:0 }}" data-max="120">
-          <div class="stat-title">📅 Appointments</div>
-          <div class="circle"><span>{{ appointments_count|default:0 }}</span></div>
-          <div class="wave-wrap">
-            <svg viewBox="0 0 120 40" preserveAspectRatio="none">
-              <path d="M0 18 Q25 30 50 18 T120 18 V40 H0 Z" fill="#1bbf6b">
-                <animateTransform attributeName="transform" type="translate" from="0 0" to="-50 0" dur="2.5s" repeatCount="indefinite"/>
-              </path>
-            </svg>
-          </div>
-          <div class="stat-sub">Scheduled visits</div>
-        </div>
-
-        <!-- Receipts -->
-        <div class="stat-box" onclick="location.href='/receipts/'" data-value="{{ receipts_count|default:0 }}" data-max="150">
-          <div class="stat-title">💰 Receipts</div>
-          <div class="circle"><span>{{ receipts_count|default:0 }}</span></div>
-          <div class="wave-wrap">
-            <svg viewBox="0 0 120 40" preserveAspectRatio="none">
-              <path d="M0 22 Q20 12 40 22 T120 22 V40 H0 Z" fill="#ff9800">
-                <animateTransform attributeName="transform" type="translate" from="0 0" to="-45 0" dur="2.2s" repeatCount="indefinite"/>
-              </path>
-            </svg>
-          </div>
-          <div class="stat-sub">Payment records</div>
-        </div>
-
-      </div>
-    </section>
-  </main>
+    <div class="profile-menu" id="profileMenu">
+      {% if dashboard_for == 'doctor' %}
+        <p><strong>{{ request.user.get_full_name|default:request.user.username }}</strong></p>
+        <p>Email: {{ request.user.email }}</p>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="logout-btn">Logout</button></form>
+      {% else %}
+        <p><strong>{{ client.full_name }}</strong></p>
+        <p>Email: {{ client.email }}</p>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="logout-btn">Logout</button></form>
+      {% endif %}
+    </div>
+  </div>
 </div>
 
+<section class="content">
+
+  <div class="stats-grid">
+    <div class="stat-box" data-value="{{ patients_count }}" data-max="500">
+      <div>🐶 Patients</div>
+      <div class="circle"><span>0</span></div>
+      <div class="small">Total patients in your account</div>
+    </div>
+
+    <div class="stat-box" data-value="{{ appointments_count }}" data-max="500">
+      <div>📅 Appointments</div>
+      <div class="circle"><span>0</span></div>
+      <div class="small">All scheduled appointments (past + future)</div>
+    </div>
+
+    <div class="stat-box" data-value="{{ receipts_count }}" data-max="500">
+      <div>🧾 Receipts</div>
+      <div class="circle"><span>0</span></div>
+      <div class="small">Receipts count — Paid: {{ receipts_paid_count }}, Total:&nbsp;{{ receipts_total }}</div>
+    </div>
+  </div>
+
+  <div class="panel-grid">
+    <div class="panel">
+      <h3>Quick summary</h3>
+      <p class="small">
+        {% if dashboard_for == 'doctor' %}
+          Global counts shown. Use the left menu to manage records.
+        {% else %}
+          Showing data for: <strong>{{ client.full_name }}</strong> ({{ client.client_id }})
+        {% endif %}
+      </p>
+
+      <ul class="small">
+        <li>Patients: {{ patients_count }}</li>
+        <li>Appointments: {{ appointments_count }}</li>
+        <li>Receipts: {{ receipts_count }} (Paid: {{ receipts_paid_count }})</li>
+        <li>Total received amount: {{ receipts_total }}</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h3>Monthly visits</h3>
+      <div class="small">Visits per month (by visit_date)</div>
+      <div class="chart-wrap">
+        <canvas id="visitsChart" width="600" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+
+</section>
+</main>
+</div>
+
+<!-- SCRIPTS -->
 <script>
+/* PROFILE DROPDOWN */
 const btn=document.getElementById("profileBtn");
 const menu=document.getElementById("profileMenu");
-btn.onclick=e=>{e.stopPropagation();menu.classList.toggle("show")};
-document.onclick=()=>menu.classList.remove("show");
+if(btn){
+  btn.onclick=e=>{e.stopPropagation();menu.classList.toggle("show")};
+  document.onclick=()=>menu.classList.remove("show");
+}
 
-/* Circle conic fill based on data-value/max */
+/* HEART COUNTERS */
 document.querySelectorAll(".stat-box").forEach(box=>{
-  const v=parseInt(box.dataset.value||0);
-  const m=parseInt(box.dataset.max||100);
-  const p=Math.min((v/m)*100,100);
-  const circle=box.querySelector(".circle");
-  circle.style.background=`conic-gradient(var(--primary) ${p}%, #e6e6e6 0%)`;
+  const val = parseInt(box.dataset.value || 0);
+  const max = parseInt(box.dataset.max || 100);
+  const bpm = Math.min(160, Math.max(50, (val/max)*120 || 70));
+  box.style.setProperty("--beat-speed", (60/bpm) + "s");
+
+  const span = box.querySelector("span");
+  let c = 0;
+  const step = Math.max(1, Math.floor(Math.max(val/25, 1)));
+  const t = setInterval(()=>{
+    c += step;
+    if(c >= val){ c = val; clearInterval(t); }
+    span.textContent = c;
+  }, 40);
 });
+
+/* Chart - monthly visits */
+const labels = {{ chart_labels_json|safe }};
+const data = {{ chart_data_json|safe }};
+
+(function(){
+  // load Chart.js from CDN if not present
+  function initChart(){
+    const ctx = document.getElementById('visitsChart').getContext('2d');
+    // eslint-disable-next-line no-undef
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Visits',
+          data: data,
+          fill: true,
+          tension: 0.3,
+          borderWidth: 2,
+          pointRadius: 3
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { beginAtZero: true, ticks: { precision:0 } }
+        }
+      }
+    });
+  }
+
+  if (typeof Chart === 'undefined') {
+    const s = document.createElement('script');
+    s.src = "https://cdn.jsdelivr.net/npm/chart.js";
+    s.onload = initChart;
+    document.head.appendChild(s);
+  } else {
+    initChart();
+  }
+})();
 </script>
+
 </body>
 </html>

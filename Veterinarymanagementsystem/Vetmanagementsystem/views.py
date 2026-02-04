@@ -271,27 +271,97 @@ def doctor_login_view(request):
 
 
 
+# Vetmanagementsystem/views.py (partial)
+import json
+from django.shortcuts import render, redirect
+from django.db.models import Count, Sum
+from django.db.models.functions import TruncMonth
 
+from .models import Client, Patient, Visit, Appointment, Receipt
 
-@login_required
 def home(request):
-    client_id = request.session.get('client_id')
-    if not client_id:
-        return redirect('login')
+    """
+    Unified dashboard:
+      - If logged-in staff (doctor) -> show global/doctor dashboard
+      - Otherwise, attempt to show client dashboard using session['client_id']
+    """
 
-    try:
-        client = Client.objects.get(id=client_id)
-    except Client.DoesNotExist:
+    # Staff (doctor) dashboard: must be a logged-in Django user with is_staff.
+    if getattr(request, "user", None) and request.user.is_authenticated and request.user.is_staff:
+        # GLOBAL COUNTS
+        patients_count = Patient.objects.count()
+        appointments_count = Appointment.objects.count()
+        receipts_qs = Receipt.objects.all()
+        receipts_count = receipts_qs.count()
+        receipts_total = receipts_qs.aggregate(total=Sum("amount"))["total"] or 0
+        receipts_paid_count = receipts_qs.filter(status="Paid").count()
+
+        monthly_visits_qs = (
+            Visit.objects
+            .annotate(month=TruncMonth("visit_date"))
+            .values("month")
+            .annotate(total=Count("id"))
+            .order_by("month")
+        )
+
+        dashboard_for = "doctor"
         client = None
 
-    api_links = {
-        "patients": "/patients/",
-        "appointments": "/appointments/",
-        "receipts": "/receipts/",
-        "clients": "/clients/",
+    else:
+        # Client dashboard via session
+        client_id = request.session.get("client_id")
+        if not client_id:
+            return redirect("login")
+
+        client = Client.objects.filter(id=client_id).first()
+        if not client:
+            # session may be stale
+            request.session.pop("client_id", None)
+            return redirect("login")
+
+        patients_count = Patient.objects.filter(client=client).count()
+        appointments_count = Appointment.objects.filter(client=client).count()
+
+        receipts_qs = Receipt.objects.filter(client=client)
+        receipts_count = receipts_qs.count()
+        receipts_total = receipts_qs.aggregate(total=Sum("amount"))["total"] or 0
+        receipts_paid_count = receipts_qs.filter(status="Paid").count()
+
+        monthly_visits_qs = (
+            Visit.objects
+            .filter(patient__client=client)
+            .annotate(month=TruncMonth("visit_date"))
+            .values("month")
+            .annotate(total=Count("id"))
+            .order_by("month")
+        )
+
+        dashboard_for = "client"
+
+    # Build chart data (labels + data arrays)
+    chart_labels = []
+    chart_data = []
+    for item in monthly_visits_qs:
+        # item["month"] may be None for malformed data; guard it
+        month = item.get("month")
+        if month:
+            chart_labels.append(month.strftime("%b %Y"))
+            chart_data.append(item.get("total", 0))
+
+    context = {
+        "dashboard_for": dashboard_for,   # "doctor" or "client"
+        "client": client,
+        "patients_count": patients_count,
+        "appointments_count": appointments_count,
+        "receipts_count": receipts_count,
+        "receipts_total": float(receipts_total or 0),
+        "receipts_paid_count": receipts_paid_count,
+        "chart_labels_json": json.dumps(chart_labels),
+        "chart_data_json": json.dumps(chart_data),
     }
 
-    return render(request, "home.html", {"api_links": api_links, "client": client})
+    return render(request, "home.html", context)
+
 
 from django.shortcuts import render
 from .models import Appointment, Receipt, AllergyAlert, Visit, VitalSigns, ClientNote, Medication, Document, TreatmentPlan
@@ -440,6 +510,63 @@ def doctor_dashboard(request):
 
     return render(request, "doctor_dashboard.html", context)
 
+
+
+# views.py
+from django.shortcuts import render
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
+from .models import Client, Patient, Visit, Appointment, Receipt
+
+def customer_dashboard(request):
+    user = request.user
+
+    # 🔒 get client linked to this user
+    try:
+        client = Client.objects.get(username=user.username)
+    except Client.DoesNotExist:
+        client = None
+
+    # ======================
+    # COUNTS (REAL, FILTERED)
+    # ======================
+    patients_count = Patient.objects.filter(client=client).count() if client else 0
+    visits_count = Visit.objects.filter(patient__client=client).count() if client else 0
+    appointments_count = Appointment.objects.filter(client=client).count() if client else 0
+    receipts_count = Receipt.objects.filter(client=client).count() if client else 0
+
+    # ======================
+    # MONTHLY VISITS (OPTIONAL)
+    # ======================
+    monthly_visits = (
+        Visit.objects.filter(patient__client=client)
+        .annotate(month=TruncMonth("visit_date"))
+        .values("month")
+        .annotate(total=Count("id"))
+        .order_by("month")
+    ) if client else []
+
+    chart_labels = [v["month"].strftime("%b %Y") for v in monthly_visits]
+    chart_data = [v["total"] for v in monthly_visits]
+
+    context = {
+        "client": client,
+        "patients_count": patients_count,
+        "visits_count": visits_count,
+        "appointments_count": appointments_count,
+        "receipts_count": receipts_count,
+        "chart_labels": chart_labels,
+        "chart_data": chart_data,
+    }
+
+    return render(request, "home.html", context)
+
+
+
+
+
+
+    
 
 
 
